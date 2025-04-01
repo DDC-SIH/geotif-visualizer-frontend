@@ -404,14 +404,16 @@ export const L1C_BANDS = [
 type LayerType = "BandArithmatic" | "Singleband" | "RGB"
 
 export interface Layers {
-  id: number
+  id: string
   layerType: LayerType,
   bandNames: string[] ,
   bandIDs: string[] ,
-  min: number,
-  max: number,
-  minLim: number,
-  maxLim: number,
+  minMax: {
+    min: number;
+    max: number;
+    minLim: number;
+    maxLim: number;
+  }[];
   url: string,
   colormap: colorMap | "",
   transparency: number,

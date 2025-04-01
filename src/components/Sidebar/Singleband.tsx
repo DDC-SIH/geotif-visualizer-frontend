@@ -20,17 +20,55 @@ import { add } from "ol/coordinate";
 
 function LayerItem({ Layers }: { Layers: Layers }) {
   const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer } = useGeoData();
-  const [minMaxError, setMinMaxEror] = useState({
-    minError: "",
-    maxError: "",
-  });
-  const [minMax, setMinMax] = useState({
-    min: Layers.minLim,
-    max: Layers.maxLim,
-  });
+  const [minMaxError, setMinMaxError] = useState(
+    Layers.bandNames.map(() => ({ minError: "", maxError: "" }))
+  );
+  const [minMax, setMinMax] = useState(
+    Layers.minMax.map((band) => ({
+      min: band.min,
+      max: band.max,
+    }))
+  );
 
   // Find the index of this layer in the context
   const layerIndex = allLayers.findIndex((layer) => layer.id === Layers.id);
+
+  // Handle min/max changes for a specific band
+  const handleMinMaxChange = (index: number, type: 'min' | 'max', value: number) => {
+    const newMinMax = [...minMax];
+    const newMinMaxError = [...minMaxError];
+
+    if (type === 'min') {
+      if (value >= Layers.minMax[index].minLim && value <= newMinMax[index].max) {
+        newMinMax[index].min = value;
+        newMinMaxError[index].minError = "";
+      } else {
+        newMinMaxError[index].minError = "Invalid";
+      }
+    } else {
+      if (value >= newMinMax[index].min && value <= Layers.minMax[index].maxLim) {
+        newMinMax[index].max = value;
+        newMinMaxError[index].maxError = "";
+      } else {
+        newMinMaxError[index].maxError = "Invalid";
+      }
+    }
+
+    setMinMax(newMinMax);
+    setMinMaxError(newMinMaxError);
+  };
+
+  // Check if any min/max has changed
+  const hasMinMaxChanged = () => {
+    return minMax.some((band, idx) =>
+      band.min !== Layers.minMax[idx].min || band.max !== Layers.minMax[idx].max
+    );
+  };
+
+  // Check if there are any validation errors
+  const hasErrors = () => {
+    return minMaxError.some(error => error.minError || error.maxError);
+  };
 
   return (
     <AccordionItem value={Layers.id.toString()} key={Layers.id}>
@@ -51,105 +89,93 @@ function LayerItem({ Layers }: { Layers: Layers }) {
         }} />
       </AccordionTrigger>
       <AccordionContent>
-        <div className="grid grid-cols-2 text-background text-xs font-medium gap-2 mt-2">
-          <div>
-            <div className="flex justify-between">
-              Min:{" "}
-              {minMaxError.minError && (
-                <div className=" text-red-600 font-medium">
-                  {minMaxError.minError}
+        {Layers.bandNames.map((bandName, idx) => (
+          <div key={idx} className="mb-4">
+            <h4 className="text-sm font-medium mb-1">{bandName} Band</h4>
+            <div className="grid grid-cols-2 text-background text-xs font-medium gap-2">
+              <div>
+                <div className="flex justify-between">
+                  Min:{" "}
+                  {minMaxError[idx]?.minError && (
+                    <div className="text-red-600 font-medium">
+                      {minMaxError[idx].minError}
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-            <Input
-              defaultValue={minMax.min}
-              // value={processingLevelAndBands.bands[0].min}
-              className="h-[25px]"
-              onChange={(e) => {
-                const evnt = parseInt(e.target.value);
-                if (evnt >= Layers.minLim && evnt <= minMax.max) {
-                  setMinMax({
-                    ...minMax,
-                    min: evnt,
-                  });
-                  // setProcessingLevelAndBands({
-                  //   ...processingLevelAndBands,
-                  //   bands: bands,
-                  // });
-                  setMinMaxEror({ ...minMaxError, minError: "" });
-                } else {
-                  setMinMaxEror({ ...minMaxError, minError: "Invalid" });
-                }
-              }}
-            />
-          </div>
-          <div>
-            <div className="flex justify-between">
-              Max:{" "}
-              {minMaxError.maxError && (
-                <div className=" text-red-600 font-medium">
-                  {minMaxError.maxError}
-                </div>
-              )}
-            </div>
-            <Input
-              className="h-[25px]"
-              defaultValue={minMax.max}
-              // value={processingLevelAndBands.bands[0].max}
-              onChange={(e) => {
-                const evnt = parseInt(e.target.value);
-                if (evnt >= minMax.min && evnt <= Layers.maxLim) {
-                  setMinMax({
-                    ...minMax,
-                    max: evnt,
-                  });
-                  // setProcessingLevelAndBands({
-                  //   ...processingLevelAndBands,
-                  //   bands: bands,
-                  // });
-                  setMinMaxEror({ ...minMaxError, maxError: "" });
-                } else {
-                  setMinMaxEror({ ...minMaxError, maxError: "Invalid" });
-                }
-              }}
-            />
-          </div>
-          <div className="w-full mx-auto">
-            {(minMax.min !== Layers.min ||
-              minMax.max !== Layers.max) &&
-              !minMaxError.minError &&
-              !minMaxError.maxError && (
-                <Button
-                  className="mt-2 py-[0.5] px-2 text-xs font-normal h-[30px]"
-                  onClick={() => {
-                    // First update the min/max in the context
-                    updateMinMax(
-                      layerIndex,
-                      minMax.min,
-                      minMax.max
-                    );
-
-                    // Then update the local state while preserving other properties
-                    setLayers((prev) => {
-                      if (!prev) return prev;
-                      return prev.map((layer) => {
-                        if (layer.id === Layers.id) {
-                          return {
-                            ...layer, // Keep all existing properties
-                            min: minMax.min,
-                            max: minMax.max
-                          };
-                        }
-                        return layer;
-                      });
-                    });
+                <Input
+                  defaultValue={minMax[idx].min}
+                  className="h-[25px]"
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (!isNaN(value)) {
+                      handleMinMaxChange(idx, 'min', value);
+                    }
                   }}
-                >
-                  Apply
-                </Button>
-              )}
+                />
+              </div>
+              <div>
+                <div className="flex justify-between">
+                  Max:{" "}
+                  {minMaxError[idx]?.maxError && (
+                    <div className="text-red-600 font-medium">
+                      {minMaxError[idx].maxError}
+                    </div>
+                  )}
+                </div>
+                <Input
+                  className="h-[25px]"
+                  defaultValue={minMax[idx].max}
+                  onChange={(e) => {
+                    const value = parseInt(e.target.value);
+                    if (!isNaN(value)) {
+                      handleMinMaxChange(idx, 'max', value);
+                    }
+                  }}
+                />
+              </div>
+            </div>
           </div>
+        ))}
+
+        <div className="w-full mx-auto">
+          {hasMinMaxChanged() && !hasErrors() && (
+            <Button
+              className="mt-2 py-[0.5] px-2 text-xs font-normal h-[30px]"
+              onClick={() => {
+                // Update all bands' min/max values in the context
+                Layers.minMax.forEach((_, idx) => {
+                  updateMinMax(
+                    layerIndex,
+                    minMax[idx].min,
+                    minMax[idx].max,
+                    idx // Pass band index
+                  );
+                });
+
+                // Then update the local state while preserving other properties
+                setLayers((prev) => {
+                  if (!prev) return prev;
+                  return prev.map((layer) => {
+                    if (layer.id === Layers.id) {
+                      return {
+                        ...layer,
+                        minMax: layer.minMax.map((band, idx) => ({
+                          ...band,
+                          min: minMax[idx].min,
+                          max: minMax[idx].max
+                        }))
+                      };
+                    }
+                    return layer;
+                  });
+                });
+              }}
+            >
+              Apply All Changes
+            </Button>
+          )}
         </div>
+
         <div>
           <p className="text-background text-xs font-medium mb-2">
             Layer Transparency
@@ -182,6 +208,7 @@ function LayerItem({ Layers }: { Layers: Layers }) {
     </AccordionItem>
   );
 }
+
 export default function LayersSection() {
   const { Layers, addLayer } = useGeoData();
 
@@ -199,16 +226,18 @@ export default function LayersSection() {
       <Button
         className="w-full flex items-center"
         onClick={() => {
-          const layer = {
+          const layer: Layers = {
             id: Math.random().toString(36).substr(2, 9), // Generate a random id
-            layerType: "Multiband",
+            layerType: "RGB",
             bandNames: ["SWIR"],
-            min: 0,
-            max: 1000,
-            minLim: 0,
-            maxLim: 1000,
+            minMax: [{
+              min: 0,
+              max: 1000,
+              minLim: 0,
+              maxLim: 1000,
+            }],
             url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
-            bandIDs: ["1", "2", "3"],
+            bandIDs: ["1"],
             colormap: "",
             transparency: 1,
             processingLevel: "L1B",

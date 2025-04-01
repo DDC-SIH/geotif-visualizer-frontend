@@ -49,7 +49,7 @@ interface GeoDataContextType {
   addLayer: (layer: Layers) => void;
   removeLayer: (index: any) => void;
   updateOpacity: (index: number, opacity: number) => void;
-  updateMinMax: (index: number, min: number, max: number) => void;
+  updateMinMax: (index: number, min: number, max: number, bandIndex?: number) => void;
 }
 
 const GeoDataContext = createContext<GeoDataContextType | undefined>(undefined);
@@ -127,7 +127,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         url: GET_TITILER_URL({
           url: layer.url,
           bands: layer.bandIDs.map((band) => parseInt(band)),
-          minMax: [[layer.min, layer.max]],
+          minMax: layer.minMax.map(band => [band.min, band.max]),
           bandExpression: bandExpression,
           mode: mode,
           // bbox: bbox,
@@ -180,26 +180,33 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     }
   };
 
-  const updateMinMax = (index: number, min: number, max: number) => {
+  const updateMinMax = (index: number, min: number, max: number, bandIndex: number = 0) => {
     if (layersRef.current[index]) {
       // First update the layer state
       setLayers(prevLayers => {
         if (!prevLayers) return null;
 
         const updatedLayers = [...prevLayers];
-        updatedLayers[index] = {
-          ...updatedLayers[index],
+        const updatedLayer = { ...updatedLayers[index] };
+
+        // Create a copy of minMax array
+        const updatedMinMax = [...updatedLayer.minMax];
+        // Update the specific band's min/max
+        updatedMinMax[bandIndex] = {
+          ...updatedMinMax[bandIndex],
           min: min,
           max: max
         };
 
+        updatedLayer.minMax = updatedMinMax;
+        updatedLayers[index] = updatedLayer;
+
         // Create new source with updated parameters
-        const updatedLayer = updatedLayers[index];
         const newSource = new ImageTile({
           url: GET_TITILER_URL({
             url: updatedLayer.url,
             bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
-            minMax: [[min, max]],
+            minMax: updatedLayer.minMax.map(band => [band.min, band.max]),
             bandExpression: bandExpression,
             mode: mode,
           }),
@@ -212,8 +219,6 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
 
         return updatedLayers;
       });
-
-      // forceRender((prev) => prev + 1); // Force re-render
     }
   };
 
