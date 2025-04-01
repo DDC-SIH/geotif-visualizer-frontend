@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
   ColorMap,
   FileFormat,
@@ -10,9 +10,12 @@ import {
   basemap,
   baseMaps,
   GeoJSONEndpoint,
+  GET_TITILER_URL,
   Layers,
   SELECTED_LAYERS,
 } from "../constants/consts.ts";
+import TileLayer from "ol/layer/Tile";
+import { ImageTile } from "ol/source";
 
 interface GeoDataContextType {
   geoData: GeoJSON | GeoJSONError | null;
@@ -38,10 +41,15 @@ interface GeoDataContextType {
   setBandExpression: React.Dispatch<React.SetStateAction<string>>;
   bbox: bbox;
   setBBOX: React.Dispatch<React.SetStateAction<bbox>>;
-  Layers: Layers[];
-  setLayers: React.Dispatch<React.SetStateAction<Layers[]>>;
+  Layers: Layers[] | null;
+  setLayers: React.Dispatch<React.SetStateAction<Layers[] | null>>;
   updateLayer: Layers | null;
   setUpdateLayer: React.Dispatch<React.SetStateAction<Layers | null>>;
+  layersRef: React.MutableRefObject<TileLayer<any>[]>;
+  addLayer: (layer: Layers) => void;
+  removeLayer: (index: any) => void;
+  updateOpacity: (index: number, opacity: number) => void;
+  updateMinMax: (index: number, min: number, max: number) => void;
 }
 
 const GeoDataContext = createContext<GeoDataContextType | undefined>(undefined);
@@ -107,29 +115,107 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
       singleBandCOGLayer: 1,
     }
   );
-  const [Layers, setLayers] = useState(SELECTED_LAYERS);
+  const [Layers, setLayers] = useState<Layers[] | null>(null);
+  const layersRef = useRef<TileLayer<any>[]>([]);
   const [updateLayer, setUpdateLayer] = useState<Layers | null>(null);
-  // Fetch the GeoJSON data when the URL changes
-  useEffect(() => {
-    const fetchGeoData = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${GeoJSONEndpoint}?url=${url}`);
-        if (!response.ok) {
-          throw new Error("Failed to fetch geo data");
-        }
-        const data: GeoJSON = await response.json();
-        setGeoData(data);
-        console.log(data);
-        setLoading(false);
-      } catch {
-        setGeoData(null);
-        setLoading(false);
-      }
-    };
+  const [, forceRender] = useState(0);
 
-    fetchGeoData();
-  }, [url]);
+  const addLayer = (layer: Layers) => {
+    const newLayer = new TileLayer({
+      opacity: layer.transparency,
+      source: new ImageTile({
+        url: GET_TITILER_URL({
+          url: layer.url,
+          bands: layer.bandIDs.map((band) => parseInt(band)),
+          minMax: [[layer.min, layer.max]],
+          bandExpression: bandExpression,
+          mode: mode,
+          // bbox: bbox,
+        }),
+
+        transition: 250,
+        crossOrigin: "anonymous",
+      }),
+    });
+
+    // Add the layer to our reference array
+    layersRef.current.push(newLayer);
+
+    // Add the layer directly to the map
+    if (window.map && window.map.addLayer) {
+      window.map.addLayer(newLayer);
+    }
+
+    // Update Layers state with the new layer's information
+    setLayers(prevLayers => [...(prevLayers || []), layer]);
+
+    forceRender((prev) => prev + 1); // Triggers re-render
+  };
+
+  const removeLayer = (index) => {
+    // Remove the layer from the map before removing from our array
+    if (window.map && window.map.removeLayer && layersRef.current[index]) {
+      window.map.removeLayer(layersRef.current[index]);
+    }
+
+    // Remove from our reference array
+    layersRef.current.splice(index, 1);
+
+    // Update Layers state
+    setLayers(prevLayers => (prevLayers ? prevLayers.filter((_, i) => i !== index) : null));
+
+    forceRender((prev) => prev + 1); // Triggers re-render
+  };
+
+  const updateOpacity = (index: number, opacity: number) => {
+    if (layersRef.current[index]) {
+      layersRef.current[index].setOpacity(opacity);
+
+      // Update Layers state
+      setLayers(prevLayers =>
+        prevLayers ? prevLayers.map((layer, i) =>
+          i === index ? { ...layer, transparency: opacity } : layer
+        ) : null
+      );
+    }
+  };
+
+  const updateMinMax = (index: number, min: number, max: number) => {
+    if (layersRef.current[index]) {
+      // First update the layer state
+      setLayers(prevLayers => {
+        if (!prevLayers) return null;
+
+        const updatedLayers = [...prevLayers];
+        updatedLayers[index] = {
+          ...updatedLayers[index],
+          min: min,
+          max: max
+        };
+
+        // Create new source with updated parameters
+        const updatedLayer = updatedLayers[index];
+        const newSource = new ImageTile({
+          url: GET_TITILER_URL({
+            url: updatedLayer.url,
+            bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
+            minMax: [[min, max]],
+            bandExpression: bandExpression,
+            mode: mode,
+          }),
+          transition: 250,
+          crossOrigin: "anonymous",
+        });
+
+        // Update the layer's source
+        layersRef.current[index].setSource(newSource);
+
+        return updatedLayers;
+      });
+
+      // forceRender((prev) => prev + 1); // Force re-render
+    }
+  };
 
   return (
     <GeoDataContext.Provider
@@ -159,6 +245,11 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         setLayers,
         updateLayer,
         setUpdateLayer,
+        layersRef,
+        addLayer,
+        removeLayer,
+        updateOpacity,
+        updateMinMax,
       }}
     >
       {children}
