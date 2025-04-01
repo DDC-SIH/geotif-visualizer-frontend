@@ -229,15 +229,25 @@ export default function LayersSection() {
           const layer: Layers = {
             id: Math.random().toString(36).substr(2, 9), // Generate a random id
             layerType: "RGB",
-            bandNames: ["SWIR"],
+            bandNames: ["SWIR", "NIR", "RED"],
             minMax: [{
+              min: 0,
+              max: 1000,
+              minLim: 0,
+              maxLim: 1000,
+            }, {
+              min: 0,
+              max: 1000,
+              minLim: 0,
+              maxLim: 1000,
+            }, {
               min: 0,
               max: 1000,
               minLim: 0,
               maxLim: 1000,
             }],
             url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
-            bandIDs: ["1"],
+            bandIDs: ["1", "2", "3"],
             colormap: "",
             transparency: 1,
             processingLevel: "L1B",
