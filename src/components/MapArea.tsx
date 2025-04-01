@@ -5,10 +5,11 @@ import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import "ol/ol.css";
 import {
+  baseMaps,
   defaultMapConfig,
 } from "../constants/consts";
 import { useGeoData } from "../contexts/GeoDataProvider";
-import { OSM } from "ol/source";
+import { OSM, TileWMS } from "ol/source";
 import { fromLonLat } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
 
@@ -21,9 +22,7 @@ declare global {
 
 function MapComponent() {
   const {
-    addLayer,
     layersRef,
-    Layers,
     setBBOX,
   } = useGeoData();
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
@@ -65,7 +64,7 @@ function MapComponent() {
     const map = new Map({
       target: mapRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }) // Base OSM layer
+        // basemapLayer // Base OSM layer
       ],
       view: new View({
         zoom: defaultMapConfig.zoom,

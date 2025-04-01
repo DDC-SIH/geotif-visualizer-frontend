@@ -15,7 +15,7 @@ import {
   SELECTED_LAYERS,
 } from "../constants/consts.ts";
 import TileLayer from "ol/layer/Tile";
-import { ImageTile } from "ol/source";
+import { ImageTile, TileWMS } from "ol/source";
 
 interface GeoDataContextType {
   geoData: GeoJSON | GeoJSONError | null;
@@ -29,10 +29,6 @@ interface GeoDataContextType {
   setSelectedBasemap: React.Dispatch<React.SetStateAction<basemap>>;
   shapeActive: boolean;
   setShapeActive: React.Dispatch<React.SetStateAction<boolean>>;
-  processingLevelAndBands: (typeof BANDS_MASTER)[0];
-  setProcessingLevelAndBands: React.Dispatch<
-    React.SetStateAction<(typeof BANDS_MASTER)[0]>
-  >;
   layerTransparency: layerTransparency;
   setLayerTransparency: React.Dispatch<React.SetStateAction<layerTransparency>>;
   mode: mode;
@@ -93,14 +89,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [shapeActive, setShapeActive] = useState(false);
   const [mode, setMode] = useState<mode>("singleband");
-  const [processingLevelAndBands, setProcessingLevelAndBands] = useState({
-    processingLevel: BANDS_MASTER[0].processingLevel,
-    bands: [
-      BANDS_MASTER[0].bands[0],
-      BANDS_MASTER[0].bands[1],
-      BANDS_MASTER[0].bands[2],
-    ],
-  });
+
   const [bbox, setBBOX] = useState<bbox>({
     active: false,
     minx: null,
@@ -119,7 +108,40 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
   const layersRef = useRef<TileLayer<any>[]>([]);
   const [updateLayer, setUpdateLayer] = useState<Layers | null>(null);
   const [, forceRender] = useState(0);
-
+  const basemapLayer = useRef(new TileLayer({
+    source: new TileWMS({
+      url: baseMaps[0].url,
+      params: {
+        LAYERS: baseMaps[0].layer_name, // Layer to be used
+        VERSION: "1.1.1", // Version of the service
+        SRS: "EPSG:4326",
+        CRS: "EPSG:4326",
+      },
+      serverType: "geoserver",
+      crossOrigin: "anonymous",
+      transition: 250,
+    }),
+  }))
+  useEffect(() => {
+    window.map?.addLayer(basemapLayer.current);
+  }, []);
+  const updateBaseMap = (selectedBasemap: basemap) => {
+    basemapLayer.current.setOpacity(layerTransparency.baseMapLayer);
+    basemapLayer.current.setSource(
+      new TileWMS({
+        url: selectedBasemap.url,
+        params: {
+          LAYERS: selectedBasemap.layer_name,
+          VERSION: "1.1.1",
+          SRS: "EPSG:4326",
+          CRS: "EPSG:4326",
+        },
+        serverType: "geoserver",
+        crossOrigin: "anonymous",
+        transition: 250,
+      })
+    )
+  }
   const addLayer = (layer: Layers) => {
     const newLayer = new TileLayer({
       opacity: layer.transparency,
@@ -216,11 +238,13 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
 
         // Update the layer's source
         layersRef.current[index].setSource(newSource);
+        layersRef.current[index].changed();
 
         return updatedLayers;
       });
     }
   };
+
 
   return (
     <GeoDataContext.Provider
@@ -236,8 +260,6 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         setSelectedBasemap,
         shapeActive,
         setShapeActive,
-        processingLevelAndBands,
-        setProcessingLevelAndBands,
         layerTransparency,
         setLayerTransparency,
         mode,
