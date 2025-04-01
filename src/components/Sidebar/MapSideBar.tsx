@@ -14,7 +14,7 @@ import Export from "./Export";
 import ProcessingTemplates from "./processingTemplates";
 import { useGeoData } from "@/contexts/GeoDataProvider";
 import Basemap from "./Basemap";
-import LayersSection from "./Singleband";
+import LayersSection from "./Layers";
 import MultibandSection from "./Multiband";
 
 function MapSideBar() {

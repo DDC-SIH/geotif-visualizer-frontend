@@ -12,10 +12,7 @@ import {
 } from "../ui/accordion";
 import { DotSquare, GrabIcon, LucideGrab, Plus, Trash2Icon } from "lucide-react";
 import { Button } from "../ui/button";
-import { DialogTrigger } from "../ui/dialog";
-import Layer from "ol/layer/Layer";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
-import { add } from "ol/coordinate";
 // import { set } from "ol/transform";
 
 function LayerItem({ Layers }: { Layers: Layers }) {
@@ -31,7 +28,7 @@ function LayerItem({ Layers }: { Layers: Layers }) {
   );
 
   // Find the index of this layer in the context
-  const layerIndex = allLayers.findIndex((layer) => layer.id === Layers.id);
+  const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
 
   // Handle min/max changes for a specific band
   const handleMinMaxChange = (index: number, type: 'min' | 'max', value: number) => {
@@ -84,7 +81,7 @@ function LayerItem({ Layers }: { Layers: Layers }) {
         <Trash2Icon onClick={() => {
           removeLayer(layerIndex);
           setLayers((prev) => {
-            return prev.filter((layer) => layer.id !== Layers.id);
+            return prev ? prev.filter((layer) => layer.id !== Layers.id) : [];
           });
         }} />
       </AccordionTrigger>
