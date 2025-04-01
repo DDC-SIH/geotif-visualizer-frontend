@@ -9,7 +9,7 @@ import { useState } from "react";
 
 export default function Basemap() {
   const {
-    setSelectedBasemap,
+    updateBaseMap,
     selectedBasemap,
     setShapeActive,
     shapeActive,
@@ -52,7 +52,7 @@ export default function Basemap() {
                 onClick={() => {
                   console.log(source);
                   // setSelectedMap(source.name);
-                  setSelectedBasemap(source);
+                  updateBaseMap(source);
                   setSearchText("");
                 }}
               >
