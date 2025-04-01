@@ -1,0 +1,46 @@
+/*
+*OSM Layer
+https://mosdac.gov.in/mapproxy/service?&service=WMS&request=GetMap&layers=osm&styles=&format=image%2Fpng&transparent=true&version=1.1.1&width=256&height=256&srs=EPSG%3A3857&bbox=7514065.628545968,2504688.542848655,8766409.899970295,3757032.8142729844
+*Indian States
+L.tileLayer.wms('https://mosdac.gov.in/geoserver_2/worldview/wms', {
+                layers: 'worldview:INDIA_STATE250NATGIS2005 ',
+                transparent: true,
+                format: 'image/png',
+                opacity: 1,
+                CRS: 'EPSG:3857')
+* */
+
+
+
+
+
+
+
+        // const map = new Map({
+        //     target: 'map',
+        //     layers: [VisibleLayerGroup],
+        //     view: new View({
+        //         center: fromLonLat([longitude, latitude]), // Adjust to your area of interest
+        //         zoom: (geoData as GeoJSON).properties.minzoom,                     // Set the initial zoom level
+        //     }),
+        // });
+
+        // const geojsonPath = "INDIAN_BORDER.json";
+
+        // // Load GeoJSON and style the boundary
+        // const IndiaVectorSource = new VectorSource({
+        //   url: geojsonPath,
+        //   format: new GeoJSON(),
+        // });
+      
+      
+      
+        // const vectorLayer = new VectorLayer({
+        //   source: IndiaVectorSource,
+        //   style: new Style({
+        //     stroke: new Stroke({
+        //       color: "limegreen", // Green outline
+        //       width: 1, // Outline width
+        //     }),
+        //   }),
+        // });
