@@ -8,42 +8,49 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/SingleSelector";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/singleselector";
 import { Button } from "@/components/ui/button";
 import { RGB_BAND_OPTIONS } from "@/constants/addLayerConsts";
+import { Card, CardContent } from "../ui/card";
 
 interface MultiBandTabProps {
+  type: string;
+  processingLevel: string;
   onAdd: (data: any) => void;
 }
 
-export function MultiBandTab({ onAdd }: MultiBandTabProps) {
+export function MultiBandTab({
+  type,
+  processingLevel,
+  onAdd,
+}: MultiBandTabProps) {
   const [redBand, setRedBand] = useState<string>("");
   const [greenBand, setGreenBand] = useState<string>("");
   const [blueBand, setBlueBand] = useState<string>("");
-  const [bandArithmetic, setBandArithmetic] = useState<string>("");
 
   const handleAdd = () => {
     if (!redBand || !greenBand || !blueBand) return;
 
     onAdd({
       mode: "multi",
+      type,
+      processingLevel,
       red: redBand,
       green: greenBand,
       blue: blueBand,
-      arithmetic: bandArithmetic,
     });
   };
 
   return (
-    <div className="space-y-4 py-2 ">
-      <div className="grid grid-cols-3 gap-4">
+    <Card>
+      <CardContent className="space-y-4 pt-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-red-500">
+          <label className="text-sm font-medium flex items-center">
+            <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
             Red Channel (R)
           </label>
           <Select value={redBand} onValueChange={setRedBand}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select red band" />
             </SelectTrigger>
             <SelectContent>
@@ -55,12 +62,14 @@ export function MultiBandTab({ onAdd }: MultiBandTabProps) {
             </SelectContent>
           </Select>
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium text-green-500">
+          <label className="text-sm font-medium flex items-center">
+            <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
             Green Channel (G)
           </label>
           <Select value={greenBand} onValueChange={setGreenBand}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select green band" />
             </SelectTrigger>
             <SelectContent>
@@ -72,12 +81,14 @@ export function MultiBandTab({ onAdd }: MultiBandTabProps) {
             </SelectContent>
           </Select>
         </div>
+
         <div className="space-y-2">
-          <label className="text-sm font-medium text-blue-500">
+          <label className="text-sm font-medium flex items-center">
+            <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
             Blue Channel (B)
           </label>
           <Select value={blueBand} onValueChange={setBlueBand}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select blue band" />
             </SelectTrigger>
             <SelectContent>
@@ -89,26 +100,15 @@ export function MultiBandTab({ onAdd }: MultiBandTabProps) {
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div className="space-y-2">
-        <label className="text-sm font-medium">
-          Band Arithmetic (Optional)
-        </label>
-        <Input
-          placeholder="Enter band arithmetic expression"
-          value={bandArithmetic}
-          onChange={(e) => setBandArithmetic(e.target.value)}
-        />
-      </div>
-
-      <Button
-        className="w-full mt-4"
-        onClick={handleAdd}
-        disabled={!redBand || !greenBand || !blueBand}
-      >
-        Add
-      </Button>
-    </div>
+        <Button
+          className="w-full mt-6"
+          onClick={handleAdd}
+          disabled={!redBand || !greenBand || !blueBand}
+        >
+          Add RGB Composite
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

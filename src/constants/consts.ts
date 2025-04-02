@@ -3,7 +3,7 @@
 import { FileFormat } from "types/geojson";
 import type { bbox as bboxtype, mode } from "../contexts/GeoDataProvider";
 
-export const TITILER_BASE_URL = "http://127.0.0.1:8000";
+export const TITILER_BASE_URL = "http://192.168.1.116:8000";
 export const GeoJSONEndpoint = `${TITILER_BASE_URL}/cog/info.geojson`;
 export const TileEndpoint = `${TITILER_BASE_URL}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}`;
 export const TileDownloadEndpoint = `${TITILER_BASE_URL}/cog/preview`;
@@ -123,117 +123,117 @@ export const TileBBOXEndpoint = `${TITILER_BASE_URL}/cog/bbox/`;
 // ];
 
 type colorMap =
-  "accent" |
-  "accent_r" |
-  "afmhot" |
-  "afmhot_r" |
-  "algae" |
-  "algae_r" |
-  "amp" |
-  "amp_r" |
-  "autumn" |
-  "autumn_r" |
-  "balance" |
-  "balance_r" |
-  "binary" |
-  "binary_r" |
-  "blues" |
-  "blues_r" |
-  "bone" |
-  "bone_r" |
-  "brbg" |
-  "brbg_r" |
-  "brg" |
-  "brg_r" |
-  "bugn" |
-  "bugn_r" |
-  "bupu" |
-  "bupu_r" |
-  "bwr" |
-  "bwr_r" |
-  "cfastie" |
-  "cividis" |
-  "cividis_r" |
-  "cmrmap" |
-  "cmrmap_r" |
-  "cool" |
-  "cool_r" |
-  "coolwarm" |
-  "coolwarm_r" |
-  "copper" |
-  "copper_r" |
-  "cubehelix" |
-  "cubehelix_r" |
-  "curl" |
-  "curl_r" |
-  "dark2" |
-  "dark2_r" |
-  "deep" |
-  "deep_r" |
-  "delta" |
-  "delta_r" |
-  "dense" |
-  "dense_r" |
-  "diff" |
-  "diff_r" |
-  "flag" |
-  "flag_r" |
-  "gist_earth" |
-  "gist_earth_r" |
-  "gist_gray" |
-  "gist_gray_r" |
-  "gist_heat" |
-  "gist_heat_r" |
-  "gist_ncar" |
-  "gist_ncar_r" |
-  "gist_rainbow" |
-  "gist_rainbow_r" |
-  "gist_stern" |
-  "gist_stern_r" |
-  "gist_yarg" |
-  "gist_yarg_r" |
-  "gnbu" |
-  "gnbu_r" |
-  "gnuplot" |
-  "gnuplot2" |
-  "gnuplot2_r" |
-  "gnuplot_r" |
-  "gray" |
-  "gray_r" |
-  "greens" |
-  "greens_r" |
-  "greys" |
-  "greys_r" |
-  "haline" |
-  "haline_r" |
-  "hot" |
-  "hot_r" |
-  "hsv" |
-  "hsv_r" |
-  "ice" |
-  "ice_r" |
-  "inferno" |
-  "inferno_r" |
-  "jet" |
-  "jet_r" |
-  "magma" |
-  "magma_r" |
-  "matter" |
-  "matter_r" |
-  "nipy_spectral" |
-  "nipy_spectral_r" |
-  "ocean" |
-  "ocean_r" |
-  "oranges" |
-  "oranges_r" |
-  "orrd" |
-  "orrd_r" |
-  "oxy" |
-  "oxy_r" |
-  "paired" |
-  "paired_r" |
-  "pastel1" |
-  "pastel1_r";
+  | "accent"
+  | "accent_r"
+  | "afmhot"
+  | "afmhot_r"
+  | "algae"
+  | "algae_r"
+  | "amp"
+  | "amp_r"
+  | "autumn"
+  | "autumn_r"
+  | "balance"
+  | "balance_r"
+  | "binary"
+  | "binary_r"
+  | "blues"
+  | "blues_r"
+  | "bone"
+  | "bone_r"
+  | "brbg"
+  | "brbg_r"
+  | "brg"
+  | "brg_r"
+  | "bugn"
+  | "bugn_r"
+  | "bupu"
+  | "bupu_r"
+  | "bwr"
+  | "bwr_r"
+  | "cfastie"
+  | "cividis"
+  | "cividis_r"
+  | "cmrmap"
+  | "cmrmap_r"
+  | "cool"
+  | "cool_r"
+  | "coolwarm"
+  | "coolwarm_r"
+  | "copper"
+  | "copper_r"
+  | "cubehelix"
+  | "cubehelix_r"
+  | "curl"
+  | "curl_r"
+  | "dark2"
+  | "dark2_r"
+  | "deep"
+  | "deep_r"
+  | "delta"
+  | "delta_r"
+  | "dense"
+  | "dense_r"
+  | "diff"
+  | "diff_r"
+  | "flag"
+  | "flag_r"
+  | "gist_earth"
+  | "gist_earth_r"
+  | "gist_gray"
+  | "gist_gray_r"
+  | "gist_heat"
+  | "gist_heat_r"
+  | "gist_ncar"
+  | "gist_ncar_r"
+  | "gist_rainbow"
+  | "gist_rainbow_r"
+  | "gist_stern"
+  | "gist_stern_r"
+  | "gist_yarg"
+  | "gist_yarg_r"
+  | "gnbu"
+  | "gnbu_r"
+  | "gnuplot"
+  | "gnuplot2"
+  | "gnuplot2_r"
+  | "gnuplot_r"
+  | "gray"
+  | "gray_r"
+  | "greens"
+  | "greens_r"
+  | "greys"
+  | "greys_r"
+  | "haline"
+  | "haline_r"
+  | "hot"
+  | "hot_r"
+  | "hsv"
+  | "hsv_r"
+  | "ice"
+  | "ice_r"
+  | "inferno"
+  | "inferno_r"
+  | "jet"
+  | "jet_r"
+  | "magma"
+  | "magma_r"
+  | "matter"
+  | "matter_r"
+  | "nipy_spectral"
+  | "nipy_spectral_r"
+  | "ocean"
+  | "ocean_r"
+  | "oranges"
+  | "oranges_r"
+  | "orrd"
+  | "orrd_r"
+  | "oxy"
+  | "oxy_r"
+  | "paired"
+  | "paired_r"
+  | "pastel1"
+  | "pastel1_r";
 
 export type basemap = {
   name: string;
@@ -401,24 +401,24 @@ export const L1C_BANDS = [
   { value: "wv", label: "WV", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
 ];
 
-type LayerType = "BandArithmatic" | "Singleband" | "RGB"
+type LayerType = "BandArithmatic" | "Singleband" | "RGB";
 
 export interface Layers {
-  id: string
-  layerType: LayerType,
-  bandNames: string[] ,
-  bandIDs: string[] ,
+  id: string | number;
+  layerType: LayerType;
+  bandNames: string[];
+  bandIDs: string[];
   minMax: {
     min: number;
     max: number;
     minLim: number;
     maxLim: number;
   }[];
-  url: string,
-  colormap: colorMap | "",
-  transparency: number,
-  processingLevel?: string,
-  layer: unknown,
+  url: string;
+  colormap: colorMap | "";
+  transparency: number;
+  processingLevel?: string;
+  layer: unknown;
 }
 
 export const SELECTED_LAYERS: Layers[] = [
@@ -431,7 +431,7 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 1000,
     minLim: 0,
     maxLim: 1000,
-    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
+    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
     colormap: "",
     transparency: 0,
     processingLevel: "L1B",
@@ -445,12 +445,12 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 1000,
     minLim: 0,
     maxLim: 1000,
-    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
+    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
     bandID: "2",
     colormap: "",
     transparency: 1,
     processingLevel: "L1B",
-    layer: ""
+    layer: "",
   },
   {
     id: 3,
@@ -460,13 +460,13 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 0.29,
     minLim: 0,
     maxLim: 1000,
-    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
+    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
     bandID: "11",
     colormap: "",
     transparency: 0.1,
     processingLevel: "L1B",
-    layer: ""
-  }
+    layer: "",
+  },
 ];
 
 export const BANDS_MASTER = [
