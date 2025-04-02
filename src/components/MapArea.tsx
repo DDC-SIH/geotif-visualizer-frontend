@@ -5,11 +5,9 @@ import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import "ol/ol.css";
 import {
-  baseMaps,
   defaultMapConfig,
 } from "../constants/consts";
 import { useGeoData } from "../contexts/GeoDataProvider";
-import { OSM, TileWMS } from "ol/source";
 import { fromLonLat } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
 
