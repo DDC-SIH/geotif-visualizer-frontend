@@ -1,7 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { useGeoData } from "../../contexts/GeoDataProvider";
 import { Input } from "../ui/input";
-import { Layers, availableColorMaps } from "@/constants/consts";
+import { BANDS_MASTER, Layers, availableColorMaps } from "@/constants/consts";
 import { Slider } from "../ui/slider";
 import { DualRangeSlider } from "../ui/dual-range-slider";
 import {
@@ -64,7 +64,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   }, [Layers.minMax, Layers.colormap]);
 
   useEffect(() => {
-    
+
   }, []);
 
   // Handle min/max changes for a specific band
@@ -127,6 +127,25 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
           {Layers.bandNames.map((bandName, idx) => (
             <div key={idx} className="mb-4">
               <h4 className="text-sm font-medium mb-1 text-white">{bandName} Band</h4>
+              <select
+                className="w-full bg-neutral-800 text-white text-sm p-2 rounded"
+                value={Layers.bandIDs[idx] || ""}
+                onChange={(e) => {
+                  const selectedBandID = e.target.value;
+
+                  // Update the selected band ID in the context
+                  const updatedLayers = [...allLayers];
+                  updatedLayers[layerIndex].bandIDs[idx] = selectedBandID;
+                  setLayers(updatedLayers);
+                }}
+              >
+                {BANDS_MASTER.filter((band) => band.processingLevel === Layers.processingLevel)[0].bands.map((band) => (
+                  <option key={band.value} value={band.value}>
+                    {band.label}
+                  </option>
+                ))}
+              </select>
+
               <div className="mb-2">
                 <div className="flex justify-between text-background text-xs font-medium mb-1">
                   <div>

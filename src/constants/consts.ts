@@ -279,20 +279,55 @@ export const GET_DOWNLOAD_URL = (params: DOWNLOAD_PARAMS) => {
 };
 
 const L1B_BANDS = [
-  { value: "vis", label: "VIS", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "swir", label: "SWIR", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "mir", label: "MIR", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "tir1", label: "TIR1", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "tir2", label: "TIR2", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "wv", label: "WV", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
+  { value: "vis2", label: "VIS2" },
+  { value: "swir2", label: "SWIR2" },
+  { value: "mir2", label: "MIR2" },
 ];
 export const L1C_BANDS = [
-  { value: "vis", label: "VIS", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "swir", label: "SWIR", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "mir", label: "MIR", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "tir1", label: "TIR1", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "tir2", label: "TIR2", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
-  { value: "wv", label: "WV", min: 0, max: 1000, minLim: 0, maxLim: 1000 },
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
+];
+export const L2B_BANDS = [
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
+];
+export const L2C_BANDS = [
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
+];
+export const L3B_BANDS = [
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
+];
+export const L3C_BANDS = [
+  { value: "vis", label: "VIS" },
+  { value: "swir", label: "SWIR" },
+  { value: "mir", label: "MIR" },
+  { value: "tir1", label: "TIR1" },
+  { value: "tir2", label: "TIR2" },
+  { value: "wv", label: "WV" },
 ];
 
 type LayerType = "BandArithmatic" | "Singleband" | "RGB"
@@ -371,8 +406,24 @@ export const BANDS_MASTER = [
     bands: L1B_BANDS,
   },
   {
+    processingLevel: "L2B",
+    bands: L2B_BANDS,
+  },
+  {
+    processingLevel: "L3B",
+    bands: L3B_BANDS,
+  },
+  {
     processingLevel: "L1C",
     bands: L1C_BANDS,
+  },
+  {
+    processingLevel: "L2C",
+    bands: L2C_BANDS,
+  },
+  {
+    processingLevel: "L3C",
+    bands: L3C_BANDS,
   },
 ];
 
