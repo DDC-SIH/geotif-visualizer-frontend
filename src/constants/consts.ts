@@ -3,237 +3,142 @@
 import { FileFormat } from "types/geojson";
 import type { bbox as bboxtype, mode } from "../contexts/GeoDataProvider";
 
-export const TITILER_BASE_URL = "http://192.168.1.116:8000";
+export const TITILER_BASE_URL = "http://127.0.0.1:8000";
 export const GeoJSONEndpoint = `${TITILER_BASE_URL}/cog/info.geojson`;
 export const TileEndpoint = `${TITILER_BASE_URL}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}`;
 export const TileDownloadEndpoint = `${TITILER_BASE_URL}/cog/preview`;
 export const TileBBOXEndpoint = `${TITILER_BASE_URL}/cog/bbox/`;
-// export const colorMaps: ColorMap[] = [
-//   "accent",
-//   "accent_r",
-//   "afmhot",
-//   "afmhot_r",
-//   "algae",
-//   "algae_r",
-//   "amp",
-//   "amp_r",
-//   "autumn",
-//   "autumn_r",
-//   "balance",
-//   "balance_r",
-//   "binary",
-//   "binary_r",
-//   "blues",
-//   "blues_r",
-//   "bone",
-//   "bone_r",
-//   "brbg",
-//   "brbg_r",
-//   "brg",
-//   "brg_r",
-//   "bugn",
-//   "bugn_r",
-//   "bupu",
-//   "bupu_r",
-//   "bwr",
-//   "bwr_r",
-//   "cfastie",
-//   "cividis",
-//   "cividis_r",
-//   "cmrmap",
-//   "cmrmap_r",
-//   "cool",
-//   "cool_r",
-//   "coolwarm",
-//   "coolwarm_r",
-//   "copper",
-//   "copper_r",
-//   "cubehelix",
-//   "cubehelix_r",
-//   "curl",
-//   "curl_r",
-//   "dark2",
-//   "dark2_r",
-//   "deep",
-//   "deep_r",
-//   "delta",
-//   "delta_r",
-//   "dense",
-//   "dense_r",
-//   "diff",
-//   "diff_r",
-//   "flag",
-//   "flag_r",
-//   "gist_earth",
-//   "gist_earth_r",
-//   "gist_gray",
-//   "gist_gray_r",
-//   "gist_heat",
-//   "gist_heat_r",
-//   "gist_ncar",
-//   "gist_ncar_r",
-//   "gist_rainbow",
-//   "gist_rainbow_r",
-//   "gist_stern",
-//   "gist_stern_r",
-//   "gist_yarg",
-//   "gist_yarg_r",
-//   "gnbu",
-//   "gnbu_r",
-//   "gnuplot",
-//   "gnuplot2",
-//   "gnuplot2_r",
-//   "gnuplot_r",
-//   "gray",
-//   "gray_r",
-//   "greens",
-//   "greens_r",
-//   "greys",
-//   "greys_r",
-//   "haline",
-//   "haline_r",
-//   "hot",
-//   "hot_r",
-//   "hsv",
-//   "hsv_r",
-//   "ice",
-//   "ice_r",
-//   "inferno",
-//   "inferno_r",
-//   "jet",
-//   "jet_r",
-//   "magma",
-//   "magma_r",
-//   "matter",
-//   "matter_r",
-//   "nipy_spectral",
-//   "nipy_spectral_r",
-//   "ocean",
-//   "ocean_r",
-//   "oranges",
-//   "oranges_r",
-//   "orrd",
-//   "orrd_r",
-//   "oxy",
-//   "oxy_r",
-//   "paired",
-//   "paired_r",
-//   "pastel1",
-//   "pastel1_r",
-// ];
 
 type colorMap =
-  | "accent"
-  | "accent_r"
-  | "afmhot"
-  | "afmhot_r"
-  | "algae"
-  | "algae_r"
-  | "amp"
-  | "amp_r"
-  | "autumn"
-  | "autumn_r"
-  | "balance"
-  | "balance_r"
-  | "binary"
-  | "binary_r"
-  | "blues"
-  | "blues_r"
-  | "bone"
-  | "bone_r"
-  | "brbg"
-  | "brbg_r"
-  | "brg"
-  | "brg_r"
-  | "bugn"
-  | "bugn_r"
-  | "bupu"
-  | "bupu_r"
-  | "bwr"
-  | "bwr_r"
-  | "cfastie"
-  | "cividis"
-  | "cividis_r"
-  | "cmrmap"
-  | "cmrmap_r"
-  | "cool"
-  | "cool_r"
-  | "coolwarm"
-  | "coolwarm_r"
-  | "copper"
-  | "copper_r"
-  | "cubehelix"
-  | "cubehelix_r"
-  | "curl"
-  | "curl_r"
-  | "dark2"
-  | "dark2_r"
-  | "deep"
-  | "deep_r"
-  | "delta"
-  | "delta_r"
-  | "dense"
-  | "dense_r"
-  | "diff"
-  | "diff_r"
-  | "flag"
-  | "flag_r"
-  | "gist_earth"
-  | "gist_earth_r"
-  | "gist_gray"
-  | "gist_gray_r"
-  | "gist_heat"
-  | "gist_heat_r"
-  | "gist_ncar"
-  | "gist_ncar_r"
-  | "gist_rainbow"
-  | "gist_rainbow_r"
-  | "gist_stern"
-  | "gist_stern_r"
-  | "gist_yarg"
-  | "gist_yarg_r"
-  | "gnbu"
-  | "gnbu_r"
-  | "gnuplot"
-  | "gnuplot2"
-  | "gnuplot2_r"
-  | "gnuplot_r"
-  | "gray"
-  | "gray_r"
-  | "greens"
-  | "greens_r"
-  | "greys"
-  | "greys_r"
-  | "haline"
-  | "haline_r"
-  | "hot"
-  | "hot_r"
-  | "hsv"
-  | "hsv_r"
-  | "ice"
-  | "ice_r"
-  | "inferno"
-  | "inferno_r"
-  | "jet"
-  | "jet_r"
-  | "magma"
-  | "magma_r"
-  | "matter"
-  | "matter_r"
-  | "nipy_spectral"
-  | "nipy_spectral_r"
-  | "ocean"
-  | "ocean_r"
-  | "oranges"
-  | "oranges_r"
-  | "orrd"
-  | "orrd_r"
-  | "oxy"
-  | "oxy_r"
-  | "paired"
-  | "paired_r"
-  | "pastel1"
-  | "pastel1_r";
+  "accent" |
+  "accent_r" |
+  "afmhot" |
+  "afmhot_r" |
+  "algae" |
+  "algae_r" |
+  "amp" |
+  "amp_r" |
+  "autumn" |
+  "autumn_r" |
+  "balance" |
+  "balance_r" |
+  "binary" |
+  "binary_r" |
+  "blues" |
+  "blues_r" |
+  "bone" |
+  "bone_r" |
+  "brbg" |
+  "brbg_r" |
+  "brg" |
+  "brg_r" |
+  "bugn" |
+  "bugn_r" |
+  "bupu" |
+  "bupu_r" |
+  "bwr" |
+  "bwr_r" |
+  "cfastie" |
+  "cividis" |
+  "cividis_r" |
+  "cmrmap" |
+  "cmrmap_r" |
+  "cool" |
+  "cool_r" |
+  "coolwarm" |
+  "coolwarm_r" |
+  "copper" |
+  "copper_r" |
+  "cubehelix" |
+  "cubehelix_r" |
+  "curl" |
+  "curl_r" |
+  "dark2" |
+  "dark2_r" |
+  "deep" |
+  "deep_r" |
+  "delta" |
+  "delta_r" |
+  "dense" |
+  "dense_r" |
+  "diff" |
+  "diff_r" |
+  "flag" |
+  "flag_r" |
+  "gist_earth" |
+  "gist_earth_r" |
+  "gist_gray" |
+  "gist_gray_r" |
+  "gist_heat" |
+  "gist_heat_r" |
+  "gist_ncar" |
+  "gist_ncar_r" |
+  "gist_rainbow" |
+  "gist_rainbow_r" |
+  "gist_stern" |
+  "gist_stern_r" |
+  "gist_yarg" |
+  "gist_yarg_r" |
+  "gnbu" |
+  "gnbu_r" |
+  "gnuplot" |
+  "gnuplot2" |
+  "gnuplot2_r" |
+  "gnuplot_r" |
+  "gray" |
+  "gray_r" |
+  "greens" |
+  "greens_r" |
+  "greys" |
+  "greys_r" |
+  "haline" |
+  "haline_r" |
+  "hot" |
+  "hot_r" |
+  "hsv" |
+  "hsv_r" |
+  "ice" |
+  "ice_r" |
+  "inferno" |
+  "inferno_r" |
+  "jet" |
+  "jet_r" |
+  "magma" |
+  "magma_r" |
+  "matter" |
+  "matter_r" |
+  "nipy_spectral" |
+  "nipy_spectral_r" |
+  "ocean" |
+  "ocean_r" |
+  "oranges" |
+  "oranges_r" |
+  "orrd" |
+  "orrd_r" |
+  "oxy" |
+  "oxy_r" |
+  "paired" |
+  "paired_r" |
+  "pastel1" |
+  "pastel1_r";
+
+// Add an array of all available colorMaps for the selector
+export const availableColorMaps: colorMap[] = [
+  "accent", "accent_r", "afmhot", "afmhot_r", "algae", "algae_r", "amp", "amp_r",
+  "autumn", "autumn_r", "balance", "balance_r", "binary", "binary_r", "blues", "blues_r",
+  "bone", "bone_r", "brbg", "brbg_r", "brg", "brg_r", "bugn", "bugn_r", "bupu", "bupu_r",
+  "bwr", "bwr_r", "cfastie", "cividis", "cividis_r", "cmrmap", "cmrmap_r", "cool", "cool_r",
+  "coolwarm", "coolwarm_r", "copper", "copper_r", "cubehelix", "cubehelix_r", "curl", "curl_r",
+  "dark2", "dark2_r", "deep", "deep_r", "delta", "delta_r", "dense", "dense_r", "diff", "diff_r",
+  "flag", "flag_r", "gist_earth", "gist_earth_r", "gist_gray", "gist_gray_r", "gist_heat",
+  "gist_heat_r", "gist_ncar", "gist_ncar_r", "gist_rainbow", "gist_rainbow_r", "gist_stern",
+  "gist_stern_r", "gist_yarg", "gist_yarg_r", "gnbu", "gnbu_r", "gnuplot", "gnuplot2",
+  "gnuplot2_r", "gnuplot_r", "gray", "gray_r", "greens", "greens_r", "greys", "greys_r",
+  "haline", "haline_r", "hot", "hot_r", "hsv", "hsv_r", "ice", "ice_r", "inferno", "inferno_r",
+  "jet", "jet_r", "magma", "magma_r", "matter", "matter_r", "nipy_spectral", "nipy_spectral_r",
+  "ocean", "ocean_r", "oranges", "oranges_r", "orrd", "orrd_r", "oxy", "oxy_r", "paired",
+  "paired_r", "pastel1", "pastel1_r"
+];
 
 export type basemap = {
   name: string;
@@ -288,20 +193,12 @@ interface TITILER_PARAMS {
   tileFormat?: TILE_FORMAT;
   bandExpression?: string;
   minMax: number[][];
-  mode: mode;
+  mode: LayerType;
   bbox?: bboxtype;
+  colorMap?: colorMap;
 }
 export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
   let url = TileEndpoint;
-  // if (
-  //   params.bbox.active &&
-  //   params.bbox.minx &&
-  //   params.bbox.miny &&
-  //   params.bbox.maxx &&
-  //   params.bbox.maxy
-  // ) {
-  //   url = `${TileBBOXEndpoint}${params.bbox.minx},${params.bbox.miny},${params.bbox.maxx},${params.bbox.maxy}.png`;
-  // }
   if (params.tileFormat) {
     url += `.${params.tileFormat}`;
   }
@@ -317,16 +214,16 @@ export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
   } else {
     tempObj.searchParams.append("bidx", "1");
   }
-  if (params.mode !== "bandarithmatic") {
+  if (params.mode !== "BandArithmatic") {
     params.minMax.map((item) => {
       tempObj.searchParams.append("rescale", `${item[0]},${item[1]}`);
     });
   }
-  // tempObj.searchParams.append("rescale", "37,266");
-  // tempObj.searchParams.append("rescale", "8,421");
-  // tempObj.searchParams.append("rescale", "394,896");
+  if (params.colorMap && params.mode === "Singleband") {
+    tempObj.searchParams.append("colormap_name", params.colorMap);
+  }
 
-  if (params.bandExpression && params.mode === "bandarithmatic") {
+  if (params.bandExpression && params.mode === "BandArithmatic") {
     tempObj.searchParams.append("expression", params.bandExpression);
   }
 
@@ -339,7 +236,7 @@ interface DOWNLOAD_PARAMS {
   tileFormat: TILE_FORMAT;
   bandExpression?: string;
   minMax: number[][];
-  mode: mode;
+  mode: LayerType;
   bbox: bboxtype;
 }
 export const GET_DOWNLOAD_URL = (params: DOWNLOAD_PARAMS) => {
@@ -368,16 +265,13 @@ export const GET_DOWNLOAD_URL = (params: DOWNLOAD_PARAMS) => {
   } else {
     tempObj.searchParams.append("bidx", "1");
   }
-  if (params.mode !== "bandarithmatic") {
+  if (params.mode !== "BandArithmatic") {
     params.minMax.map((item) => {
       tempObj.searchParams.append("rescale", `${item[0]},${item[1]}`);
     });
   }
-  // tempObj.searchParams.append("rescale", "37,266");
-  // tempObj.searchParams.append("rescale", "8,421");
-  // tempObj.searchParams.append("rescale", "394,896");
 
-  if (params.bandExpression && params.mode === "bandarithmatic") {
+  if (params.bandExpression && params.mode === "BandArithmatic") {
     tempObj.searchParams.append("expression", params.bandExpression);
   }
 
@@ -436,24 +330,26 @@ export const L3C_BANDS = [
   { value: "wv", label: "WV" },
 ];
 
-type LayerType = "BandArithmatic" | "Singleband" | "RGB";
+type LayerType = "BandArithmatic" | "Singleband" | "RGB"
 
 export interface Layers {
-  id: string | number;
-  layerType: LayerType;
-  bandNames: string[];
-  bandIDs: string[];
+  id: string
+  layerType: LayerType,
+  date: string,
+  time: string,
+  bandNames: string[],
+  bandIDs: string[],
   minMax: {
     min: number;
     max: number;
     minLim: number;
     maxLim: number;
   }[];
-  url: string;
-  colormap: colorMap | "";
-  transparency: number;
-  processingLevel?: string;
-  layer: unknown;
+  url: string,
+  colormap: colorMap | "",
+  transparency: number,
+  processingLevel?: string,
+  layer: unknown,
 }
 
 export const SELECTED_LAYERS: Layers[] = [
@@ -466,7 +362,7 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 1000,
     minLim: 0,
     maxLim: 1000,
-    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
+    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
     colormap: "",
     transparency: 0,
     processingLevel: "L1B",
@@ -480,12 +376,12 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 1000,
     minLim: 0,
     maxLim: 1000,
-    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
+    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
     bandID: "2",
     colormap: "",
     transparency: 1,
     processingLevel: "L1B",
-    layer: "",
+    layer: ""
   },
   {
     id: 3,
@@ -495,13 +391,13 @@ export const SELECTED_LAYERS: Layers[] = [
     max: 0.29,
     minLim: 0,
     maxLim: 1000,
-    url: "C:\\Users\\ASUS\\Downloads\\3RIMG_01APR2025_1145_L1C_SGP_IMG_SWIR_V01R00.cog.tif",
+    url: "/COG/3RIMG/2025/03/12/3RIMG_12MAR2025_0945_L1B_V01R00.cog.tif",
     bandID: "11",
     colormap: "",
     transparency: 0.1,
     processingLevel: "L1B",
-    layer: "",
-  },
+    layer: ""
+  }
 ];
 
 export const BANDS_MASTER = [

@@ -26,7 +26,15 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
 import { cn } from "@/lib/utils";
+import ListItem from "./list-item";
 
 function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   Layers: Layers,
@@ -126,30 +134,54 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
         <AccordionContent>
           {Layers.bandNames.map((bandName, idx) => (
             <div key={idx} className="mb-4">
-              <h4 className="text-sm font-medium mb-1 text-white">{bandName} Band</h4>
-              <select
-                className="w-full bg-neutral-800 text-white text-sm p-2 rounded"
-                value={Layers.bandIDs[idx] || ""}
-                onChange={(e) => {
-                  const selectedBandID = e.target.value;
+              {/* <h4 className="text-sm font-medium mb-1 text-white">{bandName} Band</h4> */}
 
-                  // Update the selected band ID in the context
-                  const updatedLayers = [...allLayers];
-                  updatedLayers[layerIndex].bandIDs[idx] = selectedBandID;
-                  setLayers(updatedLayers);
-                }}
-              >
-                {BANDS_MASTER.filter((band) => band.processingLevel === Layers.processingLevel)[0].bands.map((band) => (
-                  <option key={band.value} value={band.value}>
-                    {band.label}
-                  </option>
-                ))}
-              </select>
+              <Select>
+                <SelectTrigger
+                  className={cn(
+                    "bg-transparent h-[27px] font-semibold",
+                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 1 && "text-red-600",
+                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 2 && "text-green-600",
+                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 3 && "text-blue-600"
+                  )}
+                >
+                  <SelectValue
+                    placeholder={bandName}
+                  />
+                </SelectTrigger>
+                <SelectContent className="bg-neutral-800 text-background font-semibold">
+                  {BANDS_MASTER
+                    .filter((band) => band.processingLevel === Layers.processingLevel)[0]
+                    .bands.map((band) => (
+                      <ListItem
+                        className="hover:bg-neutral-400 bg-neutral-800"
+                        // onClick={() => {
+                        //   const updatedBands = processingLevelAndBands.bands;
+                        //   updatedBands[bandNo - 1] = band;
+                        //   setProcessingLevelAndBands({
+                        //     ...processingLevelAndBands,
+                        //     bands: updatedBands,
+                        //   });
+                        //   setSearchInput("");
+                        // }}
+                        checked={
+                          bandName ===
+                          band.value
+                        }
+                      >
+                        {band.label}
+                      </ListItem>
+                    )
+                    )}
+                </SelectContent>
+              </Select>
 
               <div className="mb-2">
+                
                 <div className="flex justify-between text-background text-xs font-medium mb-1">
-                  <div>
-                    Min: {minMax[idx].min}
+                  <div className="mt-1">
+                    MinMax
+                    {/* Min: {minMax[idx].min} */}
                     {minMaxError[idx]?.minError && (
                       <span className="text-red-600 font-medium ml-1">
                         ({minMaxError[idx].minError})
@@ -157,7 +189,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     )}
                   </div>
                   <div>
-                    Max: {minMax[idx].max}
+                    {/* Max: {minMax[idx].max} */}
                     {minMaxError[idx]?.maxError && (
                       <span className="text-red-600 font-medium ml-1">
                         ({minMaxError[idx].maxError})
@@ -365,16 +397,6 @@ export default function LayersSection() {
               time: "09:15",
               bandNames: ["SWIR"],
               minMax: [{
-                min: 0,
-                max: 1000,
-                minLim: 0,
-                maxLim: 1000,
-              }, {
-                min: 0,
-                max: 1000,
-                minLim: 0,
-                maxLim: 1000,
-              }, {
                 min: 0,
                 max: 1000,
                 minLim: 0,
