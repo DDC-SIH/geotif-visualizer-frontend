@@ -48,6 +48,7 @@ interface GeoDataContextType {
   updateMinMax: (index: number, min: number, max: number, bandIndex?: number) => void;
   updateBaseMap: (selectedBasemap: basemap) => void;
   reorderLayers: (sourceIndex: number, destinationIndex: number) => void;
+  updateColorMap: (index: number, colorMap: ColorMap) => void;
 }
 
 const GeoDataContext = createContext<GeoDataContextType | undefined>(undefined);
@@ -161,7 +162,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
           bands: layer.bandIDs.map((band) => parseInt(band)),
           minMax: layer.minMax.map(band => [band.min, band.max]),
           bandExpression: bandExpression,
-          mode: mode,
+          mode: layer.layerType,
         }),
         transition: 250,
         crossOrigin: "anonymous",
@@ -245,6 +246,55 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     forceRender((prev) => prev + 1);
   };
 
+  const updateColorMap = (index: number, colorMap: ColorMap) => {
+    if (layersRef.current[index]) {
+      // First update the layer state
+      setLayers(prevLayers => {
+        if (!prevLayers) return null;
+
+        const updatedLayers = [...prevLayers];
+        const updatedLayer = { ...updatedLayers[index] };
+
+        // Update the color map in the layer
+        updatedLayer.colormap = colorMap;
+        updatedLayers[index] = updatedLayer;
+
+        // Create a new source with the updated color map
+        const newSource = new TileImage({
+          url: GET_TITILER_URL({
+            url: updatedLayer.url,
+            bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
+            minMax: updatedLayer.minMax.map(band => [band.min, band.max]),
+            bandExpression: bandExpression,
+            mode: updatedLayer.layerType,
+            colorMap: colorMap,
+          }),
+          transition: 0,
+          crossOrigin: "anonymous",
+        });
+
+        // Remove the old layer from the map
+        window.map?.removeLayer(layersRef.current[index]);
+
+        // Create a completely new layer
+        const newLayer = new TileLayer({
+          opacity: updatedLayer.transparency,
+          source: newSource,
+          visible: true,
+          zIndex: layersRef.current[index].getZIndex() || (index + 100), // Preserve the original zIndex or use default if undefined
+        });
+
+        // Replace in our layer reference
+        layersRef.current[index] = newLayer;
+
+        // Add the new layer to the map
+        window.map?.addLayer(newLayer);
+
+        return updatedLayers;
+      });
+    }
+  };
+
   const updateMinMax = (index: number, min: number, max: number, bandIndex: number = 0) => {
     if (layersRef.current[index]) {
       // First update the layer state
@@ -266,13 +316,17 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         updatedLayer.minMax = updatedMinMax;
         updatedLayers[index] = updatedLayer;
 
+        // Preserve the colormap when regenerating the layer
+        const colorMap = updatedLayer.colormap;
+
         // A more aggressive approach: Create and replace the entire layer instead of just updating the source
         const newLayerUrl = GET_TITILER_URL({
           url: updatedLayer.url,
           bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
           minMax: updatedLayer.minMax.map(band => [band.min, band.max]),
           bandExpression: bandExpression,
-          mode: mode,
+          mode: updatedLayer.layerType,
+          colorMap: colorMap, // Include the colormap in the URL generation
         });
 
         // Store the current zIndex to preserve it
@@ -339,7 +393,8 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         updateOpacity,
         updateMinMax,
         updateBaseMap,
-        reorderLayers
+        reorderLayers,
+        updateColorMap
       }}
     >
       {children}
