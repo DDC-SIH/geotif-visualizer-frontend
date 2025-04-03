@@ -78,6 +78,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [allTimes, setAllTimes] = useState<string[]>([]);
   const [allBands, setAllBands] = useState<CogType>();
   const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
+
   const fetchAvailableTimes = async (): Promise<{ aquisition_datetime: number; datetime: string }[]> => {
     const res = await fetch("http://192.168.1.147:7000/api/metadata/3R/cog/available-times?date=2025-03-22");
     if (res.ok) {
@@ -86,6 +87,18 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     }
     return [];
   };
+
+  const fetchAvailableDates = async () => {
+    const res = await fetch("http://192.168.1.147:7000/api/metadata//3R/cog/available-dates?processingLevel=L1B")
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Available dates:", data);
+      return data;
+    }
+    return [];
+  }
+
+  fetchAvailableDates()
 
   const fetchAllBands = async (): Promise<{
     cog: CogType
@@ -315,12 +328,14 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-neutral-800" align="start">
+                <PopoverContent className="w-auto" align="start">
                   <CalendarComponent
+
                     mode="single"
                     selected={date}
+                    className="bg-neutral-800 text-white flex flex-col"
                     onSelect={handleDateChange}
-                    initialFocus
+
                   />
                 </PopoverContent>
               </Popover>
