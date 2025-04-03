@@ -1,7 +1,6 @@
-import { useRef, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useGeoData } from "../../contexts/GeoDataProvider";
-import { Input } from "../ui/input";
-import { BANDS_MASTER, Layers, availableColorMaps } from "@/constants/consts";
+import { Layers, availableColorMaps } from "@/constants/consts";
 import { Slider } from "../ui/slider";
 import { DualRangeSlider } from "../ui/dual-range-slider";
 import {
@@ -38,7 +37,7 @@ import ListItem from "./list-item";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
 import { CogType } from "@/types/cog";
-
+import { fetchAvailableTimes, fetchAllBands } from "@/apis/req";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
   let hours = String(d.getHours()).padStart(2, "0");
@@ -46,7 +45,6 @@ export function convertFromTimestamp(ts: number) {
 
   return `${hours}:${mins}`;
 }
-const BACKEND_API_URL = "http://192.168.1.147:7000/api/metadata"
 
 function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   Layers: Layers,
@@ -67,7 +65,6 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   );
   const [open, setOpen] = useState(false);
   const [colorMapValue, setColorMapValue] = useState<string>(Layers.colormap || "");
-  const [availableDates, setAvailableDates] = useState([]);
   // Date and time state
   const [date, setDate] = useState<Date | undefined>(
     Layers.date ? new Date(Layers.date) : undefined
@@ -81,81 +78,9 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
 
 
-
-  type AvailableDate = {
-    date: string; // ISO date string (YYYY-MM-DD)
-    datetime: number; // Timestamp in milliseconds
-  };
-
-  type AvailableDatesResponse = {
-    availableDates: AvailableDate[];
-  };
-
-  const fetchAvailableDates = async (): Promise<AvailableDatesResponse> => {
-    const url = new URL(BACKEND_API_URL);
-    url.pathname = url.pathname + `/${Layers.satID}/cog/available-dates`;
-    url.searchParams.append("processingLevel", Layers.processingLevel as string);
-    const res = await fetch(url.toString());
-    if (res.ok) {
-      const data = await res.json();
-      console.log("Available dates:", data);
-      return data;
-    }
-    return { availableDates: [] };
-  }
-  useEffect(() => {
-    // Fetch available dates from the API
-    fetchAvailableDates()
-      .then((data) => {
-        if (data) {
-          const convertedDates = data.availableDates.map((date) => {
-            return new Date(date.datetime)
-          });
-          console.log("Available dates:", convertedDates);
-          setAvailableDates(convertedDates);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching available dates:", error);
-      });
-  }, [])
-  // const availableDates = await fetchAvailableDates()
-  const fetchAvailableTimes = async (): Promise<{ aquisition_datetime: number; datetime: string }[]> => {
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
-    const url = new URL(BACKEND_API_URL);
-    url.pathname = url.pathname + `/${Layers.satID}/cog/available-times`;
-    if (formattedDate) {
-      url.searchParams.append("date", formattedDate);
-    }
-    url.searchParams.append("processingLevel", Layers.processingLevel as string);
-    const res = await fetch(url.toString());
-    console.log("Available times URL:", url.toString());
-    if (res.ok) {
-      const data = await res.json();
-      return data.availableTimes;
-    }
-    return [];
-  };
-  const fetchAllBands = async (date: Date, time: string): Promise<{
-    cog: CogType
-  } | undefined> => {
-    const formattedDateTime = `${format(date, "yyyy-MM-dd")}T${time}`;
-    const url = new URL(BACKEND_API_URL);
-    url.pathname = url.pathname + `/${Layers.satID}/cog/show`;
-    url.searchParams.append("processingLevel", Layers.processingLevel as string);
-    url.searchParams.append("datetime", formattedDateTime);
-    url.searchParams.append("type", "MULTI");
-    // url.searchParams.append("type", Layers.layerType == "Singleband" ? Layers.bandNames[0] : "MULTI");
-    const res = await fetch(url.toString());
-    if (res.ok) {
-      const data = await res.json();
-      return data;
-    }
-    return undefined;
-  }
   useEffect(() => {
     // Fetch available times from the API
-    fetchAvailableTimes()
+    fetchAvailableTimes(date as Date, Layers)
       .then((times) => {
         if (times) {
           const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
@@ -176,56 +101,54 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
 
   useEffect(() => {
+    if (date && time) {
+      fetchAllBands(date, time, Layers)
+        .then((data) => {
+          if (data) {
+            console.log("Fetched all bands:", data);
+            setAllBands(data.cog);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching all bands:", error);
+        });
+    }
+  }, [time])
 
-    fetchAllBands(date as Date, time)
-      .then((data) => {
-        if (data) {
-          console.log("All bands:", data);
-          setAllBands(data.cog);
-        }
-      });
-  }, [time]);
 
-
-  // Function to map bandID to band name
-  const getBandNameById = (bandID: string): string => {
-    const bandMapping: { [key: string]: string } = {
-      "1": "VIS",
-      "2": "SWIR",
-      "3": "TIR1",
-      "4": "TIR2",
-      "5": "MIR",
-      "6": "WV",
-    };
-    return bandMapping[bandID] || "Unknown";
-  };
   useEffect(() => {
-
     if (!allBands) return;
-    const relevantBands = allBands?.bands.filter((band) => {
-      return Layers.bandIDs.includes(band.bandId.toString());
-    })
+
+    // Instead of replacing band information, only update the URL and time-related properties
+    // Create a copy of the current minMax values to update
+    const newMinMax = [...Layers.minMax];
+
+    // For each existing band, update its min/max limits from the allBands data if available
+    Layers.bandIDs.forEach((bandId, index) => {
+      const matchingBand = allBands.bands.find(band => band.bandId.toString() === bandId);
+      if (matchingBand) {
+        newMinMax[index] = {
+          ...newMinMax[index],
+          minLim: matchingBand.minimum || 1,
+          maxLim: matchingBand.maximum || 1000,
+        };
+      }
+    });
 
     const updatedLayerProp = {
       date: new Date(allBands?.aquisition_datetime).toDateString(),
       time: convertFromTimestamp(allBands?.aquisition_datetime),
-      bandNames: relevantBands?.map((band) => getBandNameById(band.bandId.toString())) || [],
-      bandIDs: relevantBands?.map((band) => band.bandId.toString()) || [],
       url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif" || `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
-      minMax: relevantBands?.map((band, id) => ({
-        min: 1 || band.min,
-        max: 1000 || band.min,
-        minLim: 1 || band.minimum,
-        maxLim: 1000 || band.maximum,
-      })) || [],
+      minMax: newMinMax,
+      // Don't update bandNames or bandIDs to preserve the current selection
     }
+
     setLayers((prev) => {
       return (prev ?? []).map((layer, idx) => {
         if (idx === layerIndex) {
           return {
             ...layer,
             ...updatedLayerProp,
-
           };
         }
         return layer;
@@ -235,6 +158,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     updateLayerFunc(layerIndex, updatedLayerProp);
 
   }, [allBands]);
+
 
 
   // Find the index of this layer in the context
@@ -448,45 +372,8 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     allBands?.bands.map((band) => (
                       <ListItem
                         className="hover:bg-neutral-400 bg-neutral-800"
-                        // onClick={() => {
-                        //   const bandName = band.description;
-                        //   const newSelectedBands = [...selectedBands];
-                        //   newSelectedBands[idx] = bandName;
-                        //   setSelectedBands(newSelectedBands);
 
-                        //   const newBandIDs = [...Layers.bandIDs];
-                        //   newBandIDs[idx] = band.bandId.toString();
-
-                        //   const newMinMax = [...Layers.minMax];
-                        //   newMinMax[idx] = {
-                        //     ...newMinMax[idx],
-                        //     minLim: band.minimum,
-                        //     maxLim: band.maximum,
-                        //   };
-
-                        //   setMinMax(newMinMax);
-
-                        //   updateLayerFunc(layerIndex, {
-                        //     bandNames: newSelectedBands,
-                        //     bandIDs: newBandIDs,
-                        //     minMax: newMinMax,
-                        //   });
-
-                        //   setLayers((prev) => {
-                        //     return prev.map((layer, id) => {
-                        //       if (id === layerIndex) {
-                        //         return {
-                        //           ...layer,
-                        //           bandNames: newSelectedBands,
-                        //           bandIDs: newBandIDs,
-                        //           minMax: newMinMax,
-                        //         };
-                        //       }
-                        //       return layer;
-                        //     });
-                        //   })
-                        // }}
-                        onClick={()=>{
+                        onClick={() => {
                           const bandName = band.description;
                           const newSelectedBands = [...selectedBands];
                           newSelectedBands[idx] = bandName;
@@ -511,7 +398,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                           });
 
                           setLayers((prev) => {
-                            return prev.map((layer, id) => {
+                            return (prev ?? []).map((layer, id) => {
                               if (id === layerIndex) {
                                 return {
                                   ...layer,

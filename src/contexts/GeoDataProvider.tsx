@@ -407,7 +407,23 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
       forceRender((prev) => prev + 1);
     }
   };
-
+  // const [availableDates, setAvailableDates] = useState([]);
+  // useEffect(() => {
+  //   // Fetch available dates from the API
+  //   fetchAvailableDates()
+  //     .then((data) => {
+  //       if (data) {
+  //         const convertedDates = data.availableDates.map((date) => {
+  //           return new Date(date.datetime)
+  //         });
+  //         console.log("Available dates:", convertedDates);
+  //         setAvailableDates(convertedDates);
+  //       }
+  //     })
+  //     .catch((error) => {
+  //       console.error("Error fetching available dates:", error);
+  //     });
+  // }, [])
   return (
     <GeoDataContext.Provider
       value={{
