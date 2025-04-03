@@ -252,7 +252,7 @@ export const GET_FINAL_DOWNLOAD_URL = (params: TITILER_PARAMS) => {
   ) {
     url = `${TileBBOXEndpoint}${params.bbox.minx},${params.bbox.miny},${params.bbox.maxx},${params.bbox.maxy}`;
   }
-  
+
   if (params.tileFormat) {
     url += `.${params.tileFormat}`;
   }
@@ -385,10 +385,11 @@ export const L3C_BANDS = [
 ];
 
 type LayerType = "BandArithmatic" | "Singleband" | "RGB"
-
+// type satID= 
 export interface Layers {
   id: string
   layerType: LayerType,
+  satID: string,
   date: string,
   time: string,
   bandNames: string[],

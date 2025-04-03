@@ -39,6 +39,7 @@ export interface CornerCoords {
 }
 
 export interface BandType {
+    description: string;
     bandId: number;
     data_type: string;
     min: number;

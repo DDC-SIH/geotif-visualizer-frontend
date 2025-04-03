@@ -46,6 +46,7 @@ export function convertFromTimestamp(ts: number) {
 
   return `${hours}:${mins}`;
 }
+const BACKEND_API_URL = "http://192.168.1.147:7000/api/metadata"
 
 function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   Layers: Layers,
@@ -66,7 +67,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   );
   const [open, setOpen] = useState(false);
   const [colorMapValue, setColorMapValue] = useState<string>(Layers.colormap || "");
-
+  const [availableDates, setAvailableDates] = useState([]);
   // Date and time state
   const [date, setDate] = useState<Date | undefined>(
     Layers.date ? new Date(Layers.date) : undefined
@@ -79,31 +80,73 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [allBands, setAllBands] = useState<CogType>();
   const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
 
+
+
+  type AvailableDate = {
+    date: string; // ISO date string (YYYY-MM-DD)
+    datetime: number; // Timestamp in milliseconds
+  };
+
+  type AvailableDatesResponse = {
+    availableDates: AvailableDate[];
+  };
+
+  const fetchAvailableDates = async (): Promise<AvailableDatesResponse> => {
+    const url = new URL(BACKEND_API_URL);
+    url.pathname = url.pathname + `/${Layers.satID}/cog/available-dates`;
+    url.searchParams.append("processingLevel", Layers.processingLevel as string);
+    const res = await fetch(url.toString());
+    if (res.ok) {
+      const data = await res.json();
+      console.log("Available dates:", data);
+      return data;
+    }
+    return { availableDates: [] };
+  }
+  useEffect(() => {
+    // Fetch available dates from the API
+    fetchAvailableDates()
+      .then((data) => {
+        if (data) {
+          const convertedDates = data.availableDates.map((date) => {
+            return new Date(date.datetime)
+          });
+          console.log("Available dates:", convertedDates);
+          setAvailableDates(convertedDates);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching available dates:", error);
+      });
+  }, [])
+  // const availableDates = await fetchAvailableDates()
   const fetchAvailableTimes = async (): Promise<{ aquisition_datetime: number; datetime: string }[]> => {
-    const res = await fetch("http://192.168.1.147:7000/api/metadata/3R/cog/available-times?date=2025-03-22");
+    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+    const url = new URL(BACKEND_API_URL);
+    url.pathname = url.pathname + `/${Layers.satID}/cog/available-times`;
+    if (formattedDate) {
+      url.searchParams.append("date", formattedDate);
+    }
+    url.searchParams.append("processingLevel", Layers.processingLevel as string);
+    const res = await fetch(url.toString());
+    console.log("Available times URL:", url.toString());
     if (res.ok) {
       const data = await res.json();
       return data.availableTimes;
     }
     return [];
   };
-
-  const fetchAvailableDates = async () => {
-    const res = await fetch("http://192.168.1.147:7000/api/metadata//3R/cog/available-dates?processingLevel=L1B")
-    if (res.ok) {
-      const data = await res.json();
-      console.log("Available dates:", data);
-      return data;
-    }
-    return [];
-  }
-
-  fetchAvailableDates()
-
-  const fetchAllBands = async (): Promise<{
+  const fetchAllBands = async (date: Date, time: string): Promise<{
     cog: CogType
   } | undefined> => {
-    const res = await fetch("http://192.168.1.147:7000/api/metadata/3R/cog/show?processingLevel=L1C&datetime=2025-03-22T09:15&type=MULTI");
+    const formattedDateTime = `${format(date, "yyyy-MM-dd")}T${time}`;
+    const url = new URL(BACKEND_API_URL);
+    url.pathname = url.pathname + `/${Layers.satID}/cog/show`;
+    url.searchParams.append("processingLevel", Layers.processingLevel as string);
+    url.searchParams.append("datetime", formattedDateTime);
+    url.searchParams.append("type", "MULTI");
+    // url.searchParams.append("type", Layers.layerType == "Singleband" ? Layers.bandNames[0] : "MULTI");
+    const res = await fetch(url.toString());
     if (res.ok) {
       const data = await res.json();
       return data;
@@ -134,7 +177,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
   useEffect(() => {
 
-    fetchAllBands()
+    fetchAllBands(date as Date, time)
       .then((data) => {
         if (data) {
           console.log("All bands:", data);
@@ -330,12 +373,14 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto" align="start">
                   <CalendarComponent
-
+                    disabled={(date) =>
+                      date > new Date() || date < new Date(new Date().setMonth(new Date().getMonth() - 3))
+                      // !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
+                    }
                     mode="single"
                     selected={date}
                     className="bg-neutral-800 text-white flex flex-col"
                     onSelect={handleDateChange}
-
                   />
                 </PopoverContent>
               </Popover>
@@ -389,9 +434,9 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                 <SelectTrigger
                   className={cn(
                     "bg-transparent h-[27px] font-semibold text-white",
-                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 1 && "text-red-600",
-                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 2 && "text-green-600",
-                    Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 3 && "text-blue-600"
+                    // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 1 && "text-red-600",
+                    // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 2 && "text-green-600",
+                    // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 3 && "text-blue-600"
                   )}
                 >
                   <SelectValue
@@ -403,8 +448,46 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     allBands?.bands.map((band) => (
                       <ListItem
                         className="hover:bg-neutral-400 bg-neutral-800"
-                        onClick={() => {
-                          const bandName = getBandNameById(band.bandId.toString());
+                        // onClick={() => {
+                        //   const bandName = band.description;
+                        //   const newSelectedBands = [...selectedBands];
+                        //   newSelectedBands[idx] = bandName;
+                        //   setSelectedBands(newSelectedBands);
+
+                        //   const newBandIDs = [...Layers.bandIDs];
+                        //   newBandIDs[idx] = band.bandId.toString();
+
+                        //   const newMinMax = [...Layers.minMax];
+                        //   newMinMax[idx] = {
+                        //     ...newMinMax[idx],
+                        //     minLim: band.minimum,
+                        //     maxLim: band.maximum,
+                        //   };
+
+                        //   setMinMax(newMinMax);
+
+                        //   updateLayerFunc(layerIndex, {
+                        //     bandNames: newSelectedBands,
+                        //     bandIDs: newBandIDs,
+                        //     minMax: newMinMax,
+                        //   });
+
+                        //   setLayers((prev) => {
+                        //     return prev.map((layer, id) => {
+                        //       if (id === layerIndex) {
+                        //         return {
+                        //           ...layer,
+                        //           bandNames: newSelectedBands,
+                        //           bandIDs: newBandIDs,
+                        //           minMax: newMinMax,
+                        //         };
+                        //       }
+                        //       return layer;
+                        //     });
+                        //   })
+                        // }}
+                        onClick={()=>{
+                          const bandName = band.description;
                           const newSelectedBands = [...selectedBands];
                           newSelectedBands[idx] = bandName;
                           setSelectedBands(newSelectedBands);
@@ -426,13 +509,28 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                             bandIDs: newBandIDs,
                             minMax: newMinMax,
                           });
+
+                          setLayers((prev) => {
+                            return prev.map((layer, id) => {
+                              if (id === layerIndex) {
+                                return {
+                                  ...layer,
+                                  bandNames: newSelectedBands,
+                                  bandIDs: newBandIDs,
+                                  minMax: newMinMax,
+                                };
+                              }
+                              return layer;
+                            });
+                          })
+
                         }}
                         checked={
                           bandName ===
-                          getBandNameById(band.bandId.toString())
+                          band.description
                         }
                       >
-                        {getBandNameById(band.bandId.toString())}
+                        {band.description}
                       </ListItem>
                     )
                     )}
@@ -636,6 +734,7 @@ export default function LayersSection() {
               layerType: "RGB",
               date: "2025-03-22",
               time: "09:15",
+              satID: "3R",
               bandNames: ["SWIR", "MIR", "TIR1"],
               bandIDs: ["1", "2", "3"],
               minMax: [{
