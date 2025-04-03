@@ -8,6 +8,7 @@ export const GeoJSONEndpoint = `${TITILER_BASE_URL}/cog/info.geojson`;
 export const TileEndpoint = `${TITILER_BASE_URL}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}`;
 export const TileDownloadEndpoint = `${TITILER_BASE_URL}/cog/preview`;
 export const TileBBOXEndpoint = `${TITILER_BASE_URL}/cog/bbox/`;
+export const TilePreviewEndpoint = `${TITILER_BASE_URL}/cog/preview`;
 
 type colorMap =
   "accent" |
@@ -199,6 +200,59 @@ interface TITILER_PARAMS {
 }
 export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
   let url = TileEndpoint;
+  if (params.tileFormat) {
+    url += `.${params.tileFormat}`;
+  }
+
+  const tempObj = new URL(url);
+
+  tempObj.searchParams.append("url", params.url);
+
+  if (params.bands.length > 0) {
+    params.bands.forEach((element) => {
+      tempObj.searchParams.append("bidx", element.toString());
+    });
+  } else {
+    tempObj.searchParams.append("bidx", "1");
+  }
+  if (params.mode !== "BandArithmatic") {
+    params.minMax.map((item) => {
+      tempObj.searchParams.append("rescale", `${item[0]},${item[1]}`);
+    });
+  }
+  if (params.colorMap && params.mode === "Singleband") {
+    tempObj.searchParams.append("colormap_name", params.colorMap);
+  }
+
+  if (params.bandExpression && params.mode === "BandArithmatic") {
+    tempObj.searchParams.append("expression", params.bandExpression);
+  }
+
+  return url + tempObj.search;
+};
+
+interface TITILER_PARAMS {
+  url: string;
+  bands: string[] | number[];
+  tileFormat?: TILE_FORMAT;
+  bandExpression?: string;
+  minMax: number[][];
+  mode: LayerType;
+  bbox?: bboxtype;
+  colorMap?: colorMap;
+}
+export const GET_FINAL_DOWNLOAD_URL = (params: TITILER_PARAMS) => {
+  let url = TileDownloadEndpoint;
+  if (params.bbox &&
+    params.bbox.active &&
+    params.bbox.minx &&
+    params.bbox.miny &&
+    params.bbox.maxx &&
+    params.bbox.maxy
+  ) {
+    url = `${TileBBOXEndpoint}${params.bbox.minx},${params.bbox.miny},${params.bbox.maxx},${params.bbox.maxy}`;
+  }
+  
   if (params.tileFormat) {
     url += `.${params.tileFormat}`;
   }

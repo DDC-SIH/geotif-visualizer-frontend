@@ -37,6 +37,15 @@ import { cn } from "@/lib/utils";
 import ListItem from "./list-item";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
+import { CogType } from "@/types/cog";
+
+export function convertFromTimestamp(ts: number) {
+  let d = new Date(ts);
+  let hours = String(d.getHours()).padStart(2, "0");
+  let mins = String(d.getMinutes()).padStart(2, "0");
+
+  return `${hours}:${mins}`;
+}
 
 function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   Layers: Layers,
@@ -45,7 +54,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   onDragOver: (e: React.DragEvent) => void,
   onDrop: (e: React.DragEvent, index: number) => void
 }) {
-  const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateColorMap } = useGeoData();
+  const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateColorMap, updateLayerFunc } = useGeoData();
   const [minMaxError, setMinMaxError] = useState(
     Layers.bandNames.map(() => ({ minError: "", maxError: "" }))
   );
@@ -63,27 +72,114 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     Layers.date ? new Date(Layers.date) : undefined
   );
   const [dateOpen, setDateOpen] = useState(false);
+
   const [time, setTime] = useState(Layers.time || "11:30");
   const [timeOpen, setTimeOpen] = useState(false);
-
-  // Generate time options in 30-minute intervals
-  const timeOptions = (() => {
-    const options = [];
-    let hour = 11;
-    let minute = 30;
-
-    for (let i = 0; i < 24; i++) { // Generate 24 options (12 hours)
-      options.push(`${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`);
-
-      minute += 30;
-      if (minute >= 60) {
-        minute = 0;
-        hour = (hour + 1) % 24;
-      }
+  const [allTimes, setAllTimes] = useState<string[]>([]);
+  const [allBands, setAllBands] = useState<CogType>();
+  const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
+  const fetchAvailableTimes = async (): Promise<{ aquisition_datetime: number; datetime: string }[]> => {
+    const res = await fetch("http://192.168.1.147:7000/api/metadata/3R/cog/available-times?date=2025-03-22");
+    if (res.ok) {
+      const data = await res.json();
+      return data.availableTimes;
     }
+    return [];
+  };
 
-    return options;
-  })();
+  const fetchAllBands = async (): Promise<{
+    cog: CogType
+  } | undefined> => {
+    const res = await fetch("http://192.168.1.147:7000/api/metadata/3R/cog/show?processingLevel=L1C&datetime=2025-03-22T09:15&type=MULTI");
+    if (res.ok) {
+      const data = await res.json();
+      return data;
+    }
+    return undefined;
+  }
+  useEffect(() => {
+    // Fetch available times from the API
+    fetchAvailableTimes()
+      .then((times) => {
+        if (times) {
+          const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
+          console.log("Available times:", convertedTimes);
+          convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
+          setAllTimes(convertedTimes);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching available times:", error);
+      });
+
+    // if set time in all time do nothing else select [0]
+    //set alltimes all times
+    //update layers
+    //update map
+  }, [date])
+
+
+  useEffect(() => {
+
+    fetchAllBands()
+      .then((data) => {
+        if (data) {
+          console.log("All bands:", data);
+          setAllBands(data.cog);
+        }
+      });
+  }, [time]);
+
+
+  // Function to map bandID to band name
+  const getBandNameById = (bandID: string): string => {
+    const bandMapping: { [key: string]: string } = {
+      "1": "VIS",
+      "2": "SWIR",
+      "3": "TIR1",
+      "4": "TIR2",
+      "5": "MIR",
+      "6": "WV",
+    };
+    return bandMapping[bandID] || "Unknown";
+  };
+  useEffect(() => {
+
+    if (!allBands) return;
+    const relevantBands = allBands?.bands.filter((band) => {
+      return Layers.bandIDs.includes(band.bandId.toString());
+    })
+
+    const updatedLayerProp = {
+      date: new Date(allBands?.aquisition_datetime).toDateString(),
+      time: convertFromTimestamp(allBands?.aquisition_datetime),
+      bandNames: relevantBands?.map((band) => getBandNameById(band.bandId.toString())) || [],
+      bandIDs: relevantBands?.map((band) => band.bandId.toString()) || [],
+      url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif" || `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+      minMax: relevantBands?.map((band, id) => ({
+        min: 1 || band.min,
+        max: 1000 || band.min,
+        minLim: 1 || band.minimum,
+        maxLim: 1000 || band.maximum,
+      })) || [],
+    }
+    setLayers((prev) => {
+      return (prev ?? []).map((layer, idx) => {
+        if (idx === layerIndex) {
+          return {
+            ...layer,
+            ...updatedLayerProp,
+
+          };
+        }
+        return layer;
+      });
+    });
+
+    updateLayerFunc(layerIndex, updatedLayerProp);
+
+  }, [allBands]);
+
 
   // Find the index of this layer in the context
   const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
@@ -249,7 +345,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     <CommandInput placeholder="Search time..." className="h-9" />
                     <CommandEmpty>No time found.</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-y-auto">
-                      {timeOptions.map((timeOption) => (
+                      {allTimes.map((timeOption) => (
                         <CommandItem
                           key={timeOption}
                           value={timeOption}
@@ -288,17 +384,40 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                   />
                 </SelectTrigger>
                 <SelectContent className="bg-neutral-800 text-background font-semibold">
-                  {BANDS_MASTER
-                    .filter((band) => band.processingLevel === Layers.processingLevel)[0]
-                    .bands.map((band) => (
+                  {
+                    allBands?.bands.map((band) => (
                       <ListItem
                         className="hover:bg-neutral-400 bg-neutral-800"
+                        onClick={() => {
+                          const bandName = getBandNameById(band.bandId.toString());
+                          const newSelectedBands = [...selectedBands];
+                          newSelectedBands[idx] = bandName;
+                          setSelectedBands(newSelectedBands);
+
+                          const newBandIDs = [...Layers.bandIDs];
+                          newBandIDs[idx] = band.bandId.toString();
+
+                          const newMinMax = [...Layers.minMax];
+                          newMinMax[idx] = {
+                            ...newMinMax[idx],
+                            minLim: band.minimum,
+                            maxLim: band.maximum,
+                          };
+
+                          setMinMax(newMinMax);
+
+                          updateLayerFunc(layerIndex, {
+                            bandNames: newSelectedBands,
+                            bandIDs: newBandIDs,
+                            minMax: newMinMax,
+                          });
+                        }}
                         checked={
                           bandName ===
-                          band.value
+                          getBandNameById(band.bandId.toString())
                         }
                       >
-                        {band.label}
+                        {getBandNameById(band.bandId.toString())}
                       </ListItem>
                     )
                     )}
@@ -499,10 +618,10 @@ export default function LayersSection() {
           onClick={() => {
             const layer: Layers = {
               id: Math.random().toString(36).substr(2, 9),
-              layerType: "Singleband",
+              layerType: "RGB",
               date: "2025-03-22",
               time: "09:15",
-              bandNames: ["SWIR", "MIR", "TIR"],
+              bandNames: ["SWIR", "MIR", "TIR1"],
               bandIDs: ["1", "2", "3"],
               minMax: [{
                 min: 0,
@@ -534,7 +653,7 @@ export default function LayersSection() {
       </h3>
 
       <div
-        className="mb-4 overflow-y-auto max-h-[calc(100vh)] pr-1 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+        className="no-scrollbar mb-4 overflow-y-auto max-h-[calc(100vh)] pr-1 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >

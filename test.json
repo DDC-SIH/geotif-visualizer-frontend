@@ -1,0 +1,112 @@
+[
+    {
+        "id": "mlxjwe7j8",
+        "layerType": "RGB",
+        "date": "2025-03-22",
+        "time": "09:15",
+        "bandNames": [
+            "SWIR",
+            "MIR",
+            "TIR"
+        ],
+        "bandIDs": [
+            "1",
+            "2",
+            "3"
+        ],
+        "minMax": [
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            },
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            },
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            }
+        ],
+        "url": "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
+        "colormap": "",
+        "transparency": 1,
+        "processingLevel": "L1B",
+        "layer": "",
+        "zIndex": 1000
+    },
+    {
+        "id": "iv7j966vk",
+        "layerType": "RGB",
+        "date": "2025-03-22",
+        "time": "09:15",
+        "bandNames": [
+            "SWIR",
+            "MIR",
+            "TIR"
+        ],
+        "bandIDs": [
+            "1",
+            "2",
+            "4"
+        ],
+        "minMax": [
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            },
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            },
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            }
+        ],
+        "url": "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
+        "colormap": "",
+        "transparency": 1,
+        "processingLevel": "L1B",
+        "layer": "",
+        "zIndex": 999
+    },
+    {
+        "id": "84e5f9073",
+        "layerType": "Singleband",
+        "date": "2025-03-22",
+        "time": "09:15",
+        "bandNames": [
+            "SWIR"
+        ],
+        "bandIDs": [
+            "1"
+        ],
+        "minMax": [
+            {
+                "min": 0,
+                "max": 1000,
+                "minLim": 0,
+                "maxLim": 1000
+            }
+        ],
+        "url": "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
+        "colormap": "",
+        "transparency": 1,
+        "processingLevel": "L1B",
+        "layer": "",
+        "zIndex": 998
+    }
+]
