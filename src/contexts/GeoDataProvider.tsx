@@ -154,15 +154,21 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     // Calculate z-index for the new layer - top layer gets highest z-index
     const zIndex = Layers ? 1000 - Layers.length : 1000;
 
+    // Set the zIndex on the layer object
+    const layerWithZIndex = {
+      ...layer,
+      zIndex: zIndex
+    };
+
     const newLayer = new TileLayer({
-      opacity: layer.transparency,
+      opacity: layerWithZIndex.transparency,
       source: new ImageTile({
         url: GET_TITILER_URL({
-          url: layer.url,
-          bands: layer.bandIDs.map((band) => parseInt(band)),
-          minMax: layer.minMax.map(band => [band.min, band.max]),
+          url: layerWithZIndex.url,
+          bands: layerWithZIndex.bandIDs.map((band) => parseInt(band)),
+          minMax: layerWithZIndex.minMax.map(band => [band.min, band.max]),
           bandExpression: bandExpression,
-          mode: layer.layerType,
+          mode: layerWithZIndex.layerType,
         }),
         transition: 250,
         crossOrigin: "anonymous",
@@ -178,9 +184,9 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
       window.map.addLayer(newLayer);
     }
 
-    // Update Layers state with the new layer's information
-    setLayers(prevLayers => [...(prevLayers || []), layer]);
-
+    // Update Layers state with the new layer's information (including zIndex)
+    setLayers(prevLayers => [...(prevLayers || []), layerWithZIndex]);
+    console.log("Layers after adding new layer:", layerWithZIndex);
     forceRender((prev) => prev + 1); // Triggers re-render
   };
 
@@ -234,14 +240,23 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     layersRef.current.splice(destinationIndex, 0, removedLayer);
 
     // Update z-indices for all layers - top layer (index 0) gets highest z-index
-    newLayers.forEach((_, index) => {
+    newLayers.forEach((layer, index) => {
       const zIndex = 1000 - index; // Highest z-index for first layer (index 0)
+
+      // Update the zIndex in the Layer object
+      newLayers[index] = {
+        ...newLayers[index],
+        zIndex: zIndex
+      };
+
+      // Update the OL layer zIndex
       if (layersRef.current[index]) {
         layersRef.current[index].setZIndex(zIndex);
       }
     });
 
     // Update state
+    console.log("Layers after reordering:", newLayers);
     setLayers(newLayers);
     forceRender((prev) => prev + 1);
   };
@@ -258,6 +273,9 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         // Update the color map in the layer
         updatedLayer.colormap = colorMap;
         updatedLayers[index] = updatedLayer;
+
+        // Get the current zIndex from the layer object or from the OL layer
+        const zIndex = updatedLayer.zIndex || layersRef.current[index].getZIndex() || (1000 - index);
 
         // Create a new source with the updated color map
         const newSource = new TileImage({
@@ -276,12 +294,12 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         // Remove the old layer from the map
         window.map?.removeLayer(layersRef.current[index]);
 
-        // Create a completely new layer
+        // Create a completely new layer with preserved zIndex
         const newLayer = new TileLayer({
           opacity: updatedLayer.transparency,
           source: newSource,
           visible: true,
-          zIndex: layersRef.current[index].getZIndex() || (index + 100), // Preserve the original zIndex or use default if undefined
+          zIndex: zIndex, // Preserve the zIndex
         });
 
         // Replace in our layer reference
@@ -316,8 +334,9 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         updatedLayer.minMax = updatedMinMax;
         updatedLayers[index] = updatedLayer;
 
-        // Preserve the colormap when regenerating the layer
+        // Preserve the colormap and zIndex when regenerating the layer
         const colorMap = updatedLayer.colormap;
+        const zIndex = updatedLayer.zIndex || layersRef.current[index].getZIndex() || (1000 - index);
 
         // A more aggressive approach: Create and replace the entire layer instead of just updating the source
         const newLayerUrl = GET_TITILER_URL({
@@ -329,9 +348,6 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
           colorMap: colorMap, // Include the colormap in the URL generation
         });
 
-        // Store the current zIndex to preserve it
-        const currentZIndex = layersRef.current[index].getZIndex();
-
         // Create completely new source
         const newSource = new TileImage({
           url: newLayerUrl,
@@ -342,12 +358,12 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         // Remove the old layer from the map
         window.map?.removeLayer(layersRef.current[index]);
 
-        // Create a completely new layer
+        // Create a completely new layer with preserved zIndex
         const newLayer = new TileLayer({
           opacity: updatedLayer.transparency,
           source: newSource,
           visible: true,
-          zIndex: currentZIndex || (index + 100), // Preserve the original zIndex or use default if undefined
+          zIndex: zIndex, // Use the preserved zIndex
         });
 
         // Replace in our layer reference

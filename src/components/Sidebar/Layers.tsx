@@ -193,6 +193,16 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
             <DotsVerticalIcon className="-ml-3 h-5 w-5" />
           </div>
           <span className="text-sm font-medium">{Layers.date + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+
+          {/* Delete button */}
+          <div className="ml-auto mr-2" onClick={(e) => {
+            e.stopPropagation(); // Prevent accordion toggle
+            if (layerIndex !== -1) {
+              removeLayer(layerIndex);
+            }
+          }}>
+            <Trash2Icon className="h-4 w-4 text-red-500 hover:text-red-400" />
+          </div>
         </AccordionTrigger>
 
         <AccordionContent>
@@ -477,30 +487,40 @@ export default function LayersSection() {
   };
 
   return (
-    <div>
-      <h3 className="font-semibold mb-4 text-primary-foreground flex  items-center justify-between">
+    <div className="flex flex-col h-full">
+      <h3 className="font-semibold mb-4 text-primary-foreground flex items-center justify-between">
         <div>
           Map Layers
         </div>
         <Button
           size={"icon"}
           variant={"secondary"}
-          className=" flex items-center "
+          className="flex items-center"
           onClick={() => {
             const layer: Layers = {
               id: Math.random().toString(36).substr(2, 9),
               layerType: "Singleband",
               date: "2025-03-22",
               time: "09:15",
-              bandNames: ["SWIR"],
+              bandNames: ["SWIR", "MIR", "TIR"],
+              bandIDs: ["1", "2", "3"],
               minMax: [{
+                min: 0,
+                max: 1000,
+                minLim: 0,
+                maxLim: 1000,
+              }, {
+                min: 0,
+                max: 1000,
+                minLim: 0,
+                maxLim: 1000,
+              }, {
                 min: 0,
                 max: 1000,
                 minLim: 0,
                 maxLim: 1000,
               }],
               url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
-              bandIDs: ["1"],
               colormap: "",
               transparency: 1,
               processingLevel: "L1B",
@@ -509,12 +529,12 @@ export default function LayersSection() {
             addLayer(layer);
           }}
         >
-          <Plus className="font-bold " />{" "}
+          <Plus className="font-bold" />{" "}
         </Button>
       </h3>
 
       <div
-        className="mb-4"
+        className="mb-4 overflow-y-auto max-h-[calc(100vh)] pr-1 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >

@@ -350,6 +350,7 @@ export interface Layers {
   transparency: number,
   processingLevel?: string,
   layer: unknown,
+  zIndex?: number, // Add zIndex property to track layer positioning
 }
 
 export const SELECTED_LAYERS: Layers[] = [

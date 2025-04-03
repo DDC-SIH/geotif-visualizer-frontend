@@ -18,29 +18,29 @@ import { Input } from "../ui/input";
 import ListItem from "./list-item";
 
 export default function Export() {
-  const { bbox, url, processingLevelAndBands, mode, bandExpression } =
+  const { bbox, url, mode, bandExpression } =
     useGeoData();
 
   const [selectedFormat, setSelectedFormat] = useState(fileFormats[0]);
   const [searchInput, setSearchInput] = useState("");
-  const downloadURL = useMemo(() => {
-    return GET_DOWNLOAD_URL({
-      url,
-      bands: mapBandsToTiTilerBands(processingLevelAndBands.bands, mode),
-      minMax: minMaxToTiTiler(processingLevelAndBands.bands, mode),
-      bandExpression: bandExpression,
-      mode: mode,
-      bbox: bbox,
-      tileFormat: selectedFormat,
-    });
-  }, [
-    url,
-    bbox,
-    processingLevelAndBands,
-    bandExpression,
-    mode,
-    selectedFormat,
-  ]);
+  // const downloadURL = useMemo(() => {
+  //   return GET_DOWNLOAD_URL({
+  //     url,
+  //     bands: mapBandsToTiTilerBands(processingLevelAndBands.bands, mode),
+  //     minMax: minMaxToTiTiler(processingLevelAndBands.bands, mode),
+  //     bandExpression: bandExpression,
+  //     mode: mode,
+  //     bbox: bbox,
+  //     tileFormat: selectedFormat,
+  //   });
+  // }, [
+  //   url,
+  //   bbox,
+  //   processingLevelAndBands,
+  //   bandExpression,
+  //   mode,
+  //   selectedFormat,
+  // ]);
 
   return (
     <div className="space-y-6">
@@ -82,7 +82,7 @@ export default function Export() {
           <Button
             className="my-2"
             onClick={() => {
-              window.open(downloadURL);
+              // window.open(downloadURL);
               // setLink("");
             }}
           >
