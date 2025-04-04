@@ -10,6 +10,7 @@ import {
 import { useGeoData } from "../contexts/GeoDataProvider";
 import { fromLonLat, toLonLat } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
+import { FiZoomIn, FiZoomOut, FiMaximize, FiSearch } from "react-icons/fi";
 
 // Declare the map on the window for global access
 declare global {
@@ -25,6 +26,8 @@ function MapComponent() {
   } = useGeoData();
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [mousePosition, setMousePosition] = useState<[number, number] | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<Map | null>(null);
 
@@ -113,6 +116,64 @@ function MapComponent() {
     };
   }, []);
 
+  // Handle zoom in
+  const handleZoomIn = () => {
+    if (mapInstance.current) {
+      const view = mapInstance.current.getView();
+      const currentZoom = view.getZoom() || 0;
+      view.animate({
+        zoom: currentZoom + 1,
+        duration: 250
+      });
+    }
+  };
+
+  // Handle zoom out
+  const handleZoomOut = () => {
+    if (mapInstance.current) {
+      const view = mapInstance.current.getView();
+      const currentZoom = view.getZoom() || 0;
+      view.animate({
+        zoom: currentZoom - 1,
+        duration: 250
+      });
+    }
+  };
+
+  // Handle fit to default view
+  const handleFitView = () => {
+    if (mapInstance.current) {
+      mapInstance.current.getView().animate({
+        center: fromLonLat(defaultMapConfig.center),
+        zoom: defaultMapConfig.animateZoom,
+        duration: defaultMapConfig.animateZoomDuration,
+      });
+    }
+  };
+
+  // Handle search submission
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery && mapInstance.current) {
+      // This is a simple example - in a real app, you'd want to use a geocoding service
+      try {
+        const coords = searchQuery.split(',').map(coord => parseFloat(coord.trim()));
+        if (coords.length === 2 && !isNaN(coords[0]) && !isNaN(coords[1])) {
+          mapInstance.current.getView().animate({
+            center: fromLonLat([coords[0], coords[1]]),
+            zoom: 12,
+            duration: 1000
+          });
+        } else {
+          alert("Please enter valid coordinates in format: longitude, latitude");
+        }
+      } catch (error) {
+        console.error("Search error:", error);
+        alert("Invalid coordinates format. Use: longitude, latitude");
+      }
+    }
+  };
+
   return (
     <div
       style={{ height: "100vh", width: "100%", position: "relative" }}
@@ -137,6 +198,140 @@ function MapComponent() {
           }}
         >
           Lon: {mousePosition[0]}, Lat: {mousePosition[1]}
+        </div>
+      )}
+
+      {/* Map Control Buttons */}
+      <div
+        className="map-controls"
+        style={{
+          position: "absolute",
+          bottom: "20px",
+          right: "20px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          zIndex: 1000
+        }}
+      >
+        <button
+          onClick={handleZoomIn}
+          style={{
+            width: "40px",
+            height: "40px",
+            backgroundColor: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+          }}
+          title="Zoom In"
+        >
+          <FiZoomIn size={20} />
+        </button>
+
+        <button
+          onClick={handleZoomOut}
+          style={{
+            width: "40px",
+            height: "40px",
+            backgroundColor: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+          }}
+          title="Zoom Out"
+        >
+          <FiZoomOut size={20} />
+        </button>
+
+        <button
+          onClick={handleFitView}
+          style={{
+            width: "40px",
+            height: "40px",
+            backgroundColor: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+          }}
+          title="Fit to Default View"
+        >
+          <FiMaximize size={18} />
+        </button>
+
+        <button
+          onClick={() => setShowSearch(!showSearch)}
+          style={{
+            width: "40px",
+            height: "40px",
+            backgroundColor: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+          }}
+          title="Search Coordinates"
+        >
+          <FiSearch size={18} />
+        </button>
+      </div>
+
+      {/* Search Input */}
+      {showSearch && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            left: "20px",
+            zIndex: 1000,
+            backgroundColor: "white",
+            padding: "10px",
+            borderRadius: "4px",
+            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+          }}
+        >
+          <form onSubmit={handleSearch} style={{ display: "flex" }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Enter coordinates (lon, lat)"
+              style={{
+                padding: "8px 12px",
+                borderRadius: "4px 0 0 4px",
+                border: "1px solid #ccc",
+                width: "200px"
+              }}
+            />
+            <button
+              type="submit"
+              style={{
+                padding: "8px 12px",
+                backgroundColor: "#4CAF50",
+                color: "white",
+                border: "none",
+                borderRadius: "0 4px 4px 0",
+                cursor: "pointer"
+              }}
+            >
+              Go
+            </button>
+          </form>
         </div>
       )}
     </div>
