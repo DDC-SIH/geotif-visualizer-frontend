@@ -8,7 +8,7 @@ import {
   defaultMapConfig,
 } from "../constants/consts";
 import { useGeoData } from "../contexts/GeoDataProvider";
-import { fromLonLat } from "ol/proj";
+import { fromLonLat, toLonLat } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
 
 // Declare the map on the window for global access
@@ -24,6 +24,7 @@ function MapComponent() {
     setBBOX,
   } = useGeoData();
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
+  const [mousePosition, setMousePosition] = useState<[number, number] | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<Map | null>(null);
 
@@ -86,6 +87,17 @@ function MapComponent() {
       });
     }
 
+    // Track mouse movement for coordinate display
+    map.on('pointermove', (evt) => {
+      const lonLat = toLonLat(evt.coordinate);
+      setMousePosition([parseFloat(lonLat[0].toFixed(6)), parseFloat(lonLat[1].toFixed(6))]);
+    });
+
+    // Clear coordinates when mouse leaves the map
+    map.getViewport().addEventListener('mouseout', () => {
+      setMousePosition(null);
+    });
+
     // Animate view
     map.getView().animate({
       zoom: defaultMapConfig.animateZoom,
@@ -103,11 +115,31 @@ function MapComponent() {
 
   return (
     <div
-      style={{ height: "100vh", width: "100%" }}
+      style={{ height: "100vh", width: "100%", position: "relative" }}
       id="map"
       ref={mapRef}
       className="map-container top-0 left-0"
-    />
+    >
+      {mousePosition && (
+        <div
+          className="coordinate-display"
+          style={{
+            position: "absolute",
+            top: "10px",
+            right: "10px",
+            background: "rgba(255, 255, 255, 0.8)",
+            padding: "5px 10px",
+            borderRadius: "4px",
+            fontSize: "14px",
+            fontFamily: "monospace",
+            zIndex: 1000,
+            boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
+          }}
+        >
+          Lon: {mousePosition[0]}, Lat: {mousePosition[1]}
+        </div>
+      )}
+    </div>
   );
 }
 
