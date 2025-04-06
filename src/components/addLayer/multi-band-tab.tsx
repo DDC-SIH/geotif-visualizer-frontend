@@ -22,13 +22,14 @@ interface MultiBandTabProps {
   processingLevel: string;
   satelliteId?: string;
   onAdd: (data: any) => void;
+  toggleOpen?: () => void;
 }
 
 export function MultiBandTab({
   type,
   processingLevel,
   satelliteId,
-  onAdd,
+  toggleOpen,
 }: MultiBandTabProps) {
   const [redBand, setRedBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
   const [greenBand, setGreenBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
@@ -64,6 +65,7 @@ export function MultiBandTab({
       layer: "",
     };
     addLayer(layer);
+    toggleOpen && toggleOpen();
 
     // setOpen(false);
 

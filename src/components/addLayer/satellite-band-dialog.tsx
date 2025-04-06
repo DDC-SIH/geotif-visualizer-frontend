@@ -183,6 +183,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                   satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
+                  toggleOpen={() => setOpen(false)}
                 />
               </TabsContent>
 
@@ -192,6 +193,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                   satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
+                  toggleOpen={() => setOpen(false)}
                 />
               </TabsContent>
 
@@ -200,6 +202,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                   type={type}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
+                  
                 />
               </TabsContent>
             </div>

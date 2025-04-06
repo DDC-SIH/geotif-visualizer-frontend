@@ -24,6 +24,7 @@ interface SingleBandTabProps {
   processingLevel: string;
   satelliteId: string;
   onAdd: (data: any) => void;
+  toggleOpen?: () => void;
 }
 
 export function SingleBandTab({
@@ -31,6 +32,7 @@ export function SingleBandTab({
   processingLevel,
   satelliteId,
   onAdd,
+  toggleOpen,
 }: SingleBandTabProps) {
   const [band, setBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
   const [allBands, setAllBands] = useState<CogType>();
@@ -63,6 +65,7 @@ export function SingleBandTab({
       layer: "",
     };
     addLayer(layer);
+    toggleOpen && toggleOpen();
 
     // setOpen(false);
 
