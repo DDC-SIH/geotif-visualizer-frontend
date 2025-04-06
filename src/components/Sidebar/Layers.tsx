@@ -40,8 +40,8 @@ import { CogType } from "@/types/cog";
 import { fetchAvailableTimes, fetchAllBands } from "@/apis/req";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
-  let hours = String(d.getHours()).padStart(2, "0");
-  let mins = String(d.getMinutes()).padStart(2, "0");
+  let hours = String(d.getUTCHours()).padStart(2, "0");
+  let mins = String(d.getUTCMinutes()).padStart(2, "0");
 
   return `${hours}:${mins}`;
 }
@@ -83,6 +83,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     fetchAvailableTimes(date as Date, Layers)
       .then((times) => {
         if (times) {
+          console.log({ times })
           const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
           console.log("Available times:", convertedTimes);
           convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
@@ -138,7 +139,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     const updatedLayerProp = {
       date: new Date(allBands?.aquisition_datetime).toDateString(),
       time: convertFromTimestamp(allBands?.aquisition_datetime),
-      url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif" || `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+      url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
       minMax: newMinMax,
       // Don't update bandNames or bandIDs to preserve the current selection
     }
@@ -611,46 +612,7 @@ export default function LayersSection() {
         <div>
           Map Layers
         </div>
-        <Button
-          size={"icon"}
-          variant={"secondary"}
-          className="flex items-center"
-          // onClick={() => {
-          //   const layer: Layers = {
-          //     id: Math.random().toString(36).substr(2, 9),
-          //     layerType: "RGB",
-          //     date: "2025-03-22",
-          //     time: "09:15",
-          //     satID: "3R",
-          //     bandNames: ["SWIR", "MIR", "TIR1"],
-          //     bandIDs: ["1", "2", "3"],
-          //     minMax: [{
-          //       min: 0,
-          //       max: 1000,
-          //       minLim: 0,
-          //       maxLim: 1000,
-          //     }, {
-          //       min: 0,
-          //       max: 1000,
-          //       minLim: 0,
-          //       maxLim: 1000,
-          //     }, {
-          //       min: 0,
-          //       max: 1000,
-          //       minLim: 0,
-          //       maxLim: 1000,
-          //     }],
-          //     url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
-          //     colormap: "",
-          //     transparency: 1,
-          //     processingLevel: "L1B",
-          //     layer: "",
-          //   };
-          //   addLayer(layer);
-          // }}
-        >
-          <Plus className="font-bold" />{" "}
-        </Button>
+        <SatelliteBandDialog />
       </h3>
 
       <div
@@ -676,7 +638,6 @@ export default function LayersSection() {
         </Accordion>
       </div>
 
-      <SatelliteBandDialog />
     </div>
   );
 }

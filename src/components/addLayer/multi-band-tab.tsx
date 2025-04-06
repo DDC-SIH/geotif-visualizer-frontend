@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Select,
   SelectContent,
@@ -10,35 +10,63 @@ import {
   SelectValue,
 } from "@/components/ui/singleselector";
 import { Button } from "@/components/ui/button";
-import { RGB_BAND_OPTIONS } from "@/constants/addLayerConsts";
 import { Card, CardContent } from "../ui/card";
+import { fetchBands } from "@/apis/req";
+import { CogType } from "@/types/cog";
+import { Layers } from "@/constants/consts";
+import { convertFromTimestamp } from "@/components/Sidebar/Layers";
+import { useGeoData } from "@/contexts/GeoDataProvider";
 
 interface MultiBandTabProps {
   type: string;
   processingLevel: string;
+  satelliteId?: string;
   onAdd: (data: any) => void;
 }
 
 export function MultiBandTab({
   type,
   processingLevel,
+  satelliteId,
   onAdd,
 }: MultiBandTabProps) {
-  const [redBand, setRedBand] = useState<string>("");
-  const [greenBand, setGreenBand] = useState<string>("");
-  const [blueBand, setBlueBand] = useState<string>("");
+  const [redBand, setRedBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
+  const [greenBand, setGreenBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
+  const [blueBand, setBlueBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
+  const [allBands, setAllBands] = useState<CogType>();
+  const { addLayer } = useGeoData();
+
+
+
+  useEffect(() => {
+    fetchBands({ satID: satelliteId, processingLevel: processingLevel }).then((data) => {
+      setAllBands(data?.cog);
+    })
+  }, [processingLevel]);
 
   const handleAdd = () => {
-    if (!redBand || !greenBand || !blueBand) return;
 
-    onAdd({
-      mode: "multi",
-      type,
-      processingLevel,
-      red: redBand,
-      green: greenBand,
-      blue: blueBand,
-    });
+    if (!redBand || !greenBand || !blueBand) return;
+    console.log(`${allBands?.filepath || ""}/${allBands?.filename || ""}`)
+    const layer: Layers = {
+      id: Math.random().toString(36).substr(2, 9),
+      layerType: "RGB",
+      date: new Date(allBands?.aquisition_datetime as number).toDateString(),
+      time: convertFromTimestamp(allBands?.aquisition_datetime as number),
+      satID: "3R",
+      bandNames: [redBand.name, greenBand.name, blueBand.name],
+      bandIDs: [redBand.id, greenBand.id, blueBand.id],
+      minMax: [redBand.minMax, greenBand.minMax, blueBand.minMax],
+      url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+      colormap: "",
+      transparency: 1,
+      processingLevel: allBands?.processingLevel,
+      layer: "",
+    };
+    addLayer(layer);
+
+    // setOpen(false);
+
   };
 
   return (
@@ -49,14 +77,26 @@ export function MultiBandTab({
             <div className="w-4 h-4 rounded-full bg-red-500 mr-2"></div>
             Red Channel (R)
           </label>
-          <Select value={redBand} onValueChange={setRedBand}>
+          <Select value={redBand.name} onValueChange={(val) => {
+            const selectedBand = allBands?.bands.find((band) => band.description === val);
+            if (selectedBand) {
+              setRedBand({
+                name: selectedBand.description, id: selectedBand.bandId.toString(), minMax: {
+                  min: selectedBand.min,
+                  max: selectedBand.max,
+                  minLim: selectedBand.min,
+                  maxLim: selectedBand.max,
+                }
+              });
+            }
+          }}>
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select red band" />
             </SelectTrigger>
             <SelectContent>
-              {RGB_BAND_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {allBands?.bands.map((option) => (
+                <SelectItem key={option.bandId} value={option.description}>
+                  {option.description}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -68,14 +108,26 @@ export function MultiBandTab({
             <div className="w-4 h-4 rounded-full bg-green-500 mr-2"></div>
             Green Channel (G)
           </label>
-          <Select value={greenBand} onValueChange={setGreenBand}>
+          <Select value={greenBand.name} onValueChange={(val) => {
+            const selectedBand = allBands?.bands.find((band) => band.description === val);
+            if (selectedBand) {
+              setGreenBand({
+                name: selectedBand.description, id: selectedBand.bandId.toString(), minMax: {
+                  min: selectedBand.min,
+                  max: selectedBand.max,
+                  minLim: selectedBand.min,
+                  maxLim: selectedBand.max,
+                }
+              });
+            }
+          }}>
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select green band" />
             </SelectTrigger>
             <SelectContent>
-              {RGB_BAND_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {allBands?.bands.map((option) => (
+                <SelectItem key={option.bandId} value={option.description}>
+                  {option.description}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -87,14 +139,26 @@ export function MultiBandTab({
             <div className="w-4 h-4 rounded-full bg-blue-500 mr-2"></div>
             Blue Channel (B)
           </label>
-          <Select value={blueBand} onValueChange={setBlueBand}>
+          <Select value={blueBand.name} onValueChange={(val) => {
+            const selectedBand = allBands?.bands.find((band) => band.description === val);
+            if (selectedBand) {
+              setBlueBand({
+                name: selectedBand.description, id: selectedBand.bandId.toString(), minMax: {
+                  min: selectedBand.min,
+                  max: selectedBand.max,
+                  minLim: selectedBand.min,
+                  maxLim: selectedBand.max,
+                }
+              });
+            }
+          }}>
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select blue band" />
             </SelectTrigger>
             <SelectContent>
-              {RGB_BAND_OPTIONS.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
+              {allBands?.bands.map((option) => (
+                <SelectItem key={option.bandId} value={option.description}>
+                  {option.description}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -109,6 +173,6 @@ export function MultiBandTab({
           Add RGB Composite
         </Button>
       </CardContent>
-    </Card>
+    </Card >
   );
 }

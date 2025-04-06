@@ -3,7 +3,7 @@
 import { FileFormat } from "types/geojson";
 import type { bbox as bboxtype, mode } from "../contexts/GeoDataProvider";
 
-export const TITILER_BASE_URL = "http://127.0.0.1:8000";
+export const TITILER_BASE_URL = "http://74.226.242.56:8000";
 export const GeoJSONEndpoint = `${TITILER_BASE_URL}/cog/info.geojson`;
 export const TileEndpoint = `${TITILER_BASE_URL}/cog/tiles/WebMercatorQuad/{z}/{x}/{y}`;
 export const TileDownloadEndpoint = `${TITILER_BASE_URL}/cog/preview`;

@@ -1,8 +1,8 @@
 // Satellite configuration
 export const SATELLITES = {
-  INSAT3R: {
-    id: "INSAT3R",
-    label: "INSAT3R",
+  "3R": {
+    id: "3R",
+    label: "3R",
     disabled: false,
     types: ["Imager", "Sounder"],
   },
@@ -53,6 +53,6 @@ export const RGB_BAND_OPTIONS = [
 ];
 
 // Default values
-export const DEFAULT_SATELLITE = "INSAT3R";
+export const DEFAULT_SATELLITE = "3R";
 export const DEFAULT_TYPE = "Imager";
 export const DEFAULT_PROCESSING_LEVEL = "L1B";

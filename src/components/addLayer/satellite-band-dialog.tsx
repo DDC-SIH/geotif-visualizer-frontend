@@ -34,13 +34,13 @@ import {
   SATELLITES,
   TYPES,
 } from "@/constants/addLayerConsts";
-// import { fetchBands } from "@/apis/req";
+import { Plus } from "lucide-react";
 
 interface SatelliteBandDialogProps {
   trigger?: React.ReactNode;
 }
 
-export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
+export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("single");
 
@@ -58,10 +58,6 @@ export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
     setType(availableTypes[0]);
   }, [satellite]);
 
-  useEffect(() => {
-
-
-  }, [processingLevel]);
 
   const handleAdd = (data: any) => {
     // Add satellite to the data
@@ -72,16 +68,20 @@ export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
     console.log("Selected data:", completeData);
     setOpen(false);
   };
-  // try {
-  //   const bands = await fetchBands({ satID: satellite, processingLevel: processingLevel })
-  //   console.log("bands", bands)
-  // } catch (error) {
-  //   console.log("Error fetching bands:", error);
-  // }
+
+
+
   return (
     <Dialog open={open} onOpenChange={setOpen} >
       <DialogTrigger asChild>
-        {trigger || <Button>Open Band Selector</Button>}
+        <Button
+          size={"icon"}
+          variant={"secondary"}
+          className="flex items-center"
+
+        >
+          <Plus className="font-bold" />{" "}
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[550px] bg-gray-50 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -180,6 +180,7 @@ export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
               <TabsContent value="single">
                 <SingleBandTab
                   type={type}
+                  satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
                 />
@@ -188,6 +189,7 @@ export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
               <TabsContent value="multi">
                 <MultiBandTab
                   type={type}
+                  satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
                 />

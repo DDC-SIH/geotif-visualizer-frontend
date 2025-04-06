@@ -2,7 +2,7 @@ import { CogType } from "@/types/cog";
 import { format } from "date-fns";
 import { Layers } from "@/constants/consts"
 // import Layers 
-const BACKEND_API_URL = "http://192.168.1.147:7000/api/metadata"
+const BACKEND_API_URL = "http://74.226.242.56:7000/api/metadata"
 
 type AvailableDate = {
     date: string; // ISO date string (YYYY-MM-DD)
