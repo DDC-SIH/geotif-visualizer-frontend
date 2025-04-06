@@ -71,12 +71,29 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   );
   const [dateOpen, setDateOpen] = useState(false);
 
-  const [time, setTime] = useState(Layers.time || "11:30");
+  const [time, setTime] = useState(Layers.time);
   const [timeOpen, setTimeOpen] = useState(false);
   const [allTimes, setAllTimes] = useState<string[]>([]);
   const [allBands, setAllBands] = useState<CogType>();
   const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
+  const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
 
+  useEffect(() => {
+    // Fetch available dates from the API
+    fetchAvailableTimes(date as Date, Layers)
+      .then((dates) => {
+        if (dates) {
+          const formattedDates = dates.map(date => ({
+            date: date.aquisition_datetime.toString(),
+            datetime: date.datetime
+          }));
+          setAvailableDates(formattedDates);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching available dates:", error);
+      });
+  }, [dateOpen]);
 
   useEffect(() => {
     // Fetch available times from the API
@@ -129,9 +146,10 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
       const matchingBand = allBands.bands.find(band => band.bandId.toString() === bandId);
       if (matchingBand) {
         newMinMax[index] = {
-          ...newMinMax[index],
-          minLim: matchingBand.minimum || 1,
-          maxLim: matchingBand.maximum || 1000,
+          min: matchingBand.minimum,
+          max: matchingBand.maximum,
+          minLim: matchingBand.minimum,
+          maxLim: matchingBand.maximum,
         };
       }
     });
@@ -296,18 +314,23 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     {date ? format(date, "PPP") : <span>Pick a date</span>}
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto" align="start">
-                  <CalendarComponent
-                    disabled={(date) =>
-                      date > new Date() || date < new Date(new Date().setMonth(new Date().getMonth() - 3))
-                      // !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
-                    }
-                    mode="single"
-                    selected={date}
-                    className="bg-neutral-800 text-white flex flex-col"
-                    onSelect={handleDateChange}
-                  />
-                </PopoverContent>
+                {
+                  availableDates.length > 0 && (
+                    <PopoverContent className="w-auto" align="start">
+                      <CalendarComponent
+                        disabled={(date) =>
+                          date > new Date() || date < new Date(new Date().setMonth(new Date().getMonth() - 3)) ||
+                          !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
+                        }
+                        mode="single"
+                        selected={date}
+                        className="bg-neutral-800 text-white flex flex-col"
+                        onSelect={handleDateChange}
+                      />
+                    </PopoverContent>
+                  )
+                }
+
               </Popover>
             </div>
 
