@@ -34,12 +34,13 @@ import {
   SATELLITES,
   TYPES,
 } from "@/constants/addLayerConsts";
+// import { fetchBands } from "@/apis/req";
 
 interface SatelliteBandDialogProps {
   trigger?: React.ReactNode;
 }
 
-export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
+export  function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("single");
 
@@ -57,6 +58,11 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
     setType(availableTypes[0]);
   }, [satellite]);
 
+  useEffect(() => {
+
+
+  }, [processingLevel]);
+
   const handleAdd = (data: any) => {
     // Add satellite to the data
     const completeData = {
@@ -66,13 +72,18 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
     console.log("Selected data:", completeData);
     setOpen(false);
   };
-
+  // try {
+  //   const bands = await fetchBands({ satID: satellite, processingLevel: processingLevel })
+  //   console.log("bands", bands)
+  // } catch (error) {
+  //   console.log("Error fetching bands:", error);
+  // }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={setOpen} >
       <DialogTrigger asChild>
         {trigger || <Button>Open Band Selector</Button>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] bg-gray-50">
+      <DialogContent className="sm:max-w-[550px] bg-gray-50 max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center">
             Satellite Band Selection
@@ -103,7 +114,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                 </Select>
               </div>
 
-              {/* Type Selector */}
+              {/* Type Selector
               <div className="space-y-2">
                 <label className="text-sm font-medium">Type</label>
                 <Select value={type} onValueChange={setType}>
@@ -127,7 +138,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                     )}
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
 
               {/* Processing Level Selector */}
               <div className="space-y-2">

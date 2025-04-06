@@ -615,39 +615,39 @@ export default function LayersSection() {
           size={"icon"}
           variant={"secondary"}
           className="flex items-center"
-          onClick={() => {
-            const layer: Layers = {
-              id: Math.random().toString(36).substr(2, 9),
-              layerType: "RGB",
-              date: "2025-03-22",
-              time: "09:15",
-              satID: "3R",
-              bandNames: ["SWIR", "MIR", "TIR1"],
-              bandIDs: ["1", "2", "3"],
-              minMax: [{
-                min: 0,
-                max: 1000,
-                minLim: 0,
-                maxLim: 1000,
-              }, {
-                min: 0,
-                max: 1000,
-                minLim: 0,
-                maxLim: 1000,
-              }, {
-                min: 0,
-                max: 1000,
-                minLim: 0,
-                maxLim: 1000,
-              }],
-              url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
-              colormap: "",
-              transparency: 1,
-              processingLevel: "L1B",
-              layer: "",
-            };
-            addLayer(layer);
-          }}
+          // onClick={() => {
+          //   const layer: Layers = {
+          //     id: Math.random().toString(36).substr(2, 9),
+          //     layerType: "RGB",
+          //     date: "2025-03-22",
+          //     time: "09:15",
+          //     satID: "3R",
+          //     bandNames: ["SWIR", "MIR", "TIR1"],
+          //     bandIDs: ["1", "2", "3"],
+          //     minMax: [{
+          //       min: 0,
+          //       max: 1000,
+          //       minLim: 0,
+          //       maxLim: 1000,
+          //     }, {
+          //       min: 0,
+          //       max: 1000,
+          //       minLim: 0,
+          //       maxLim: 1000,
+          //     }, {
+          //       min: 0,
+          //       max: 1000,
+          //       minLim: 0,
+          //       maxLim: 1000,
+          //     }],
+          //     url: "C:\\Users\\SUBINOY\\Downloads\\3RIMG_22MAR2025_0915_L1C_ASIA_MER_V01R00.cog.tif",
+          //     colormap: "",
+          //     transparency: 1,
+          //     processingLevel: "L1B",
+          //     layer: "",
+          //   };
+          //   addLayer(layer);
+          // }}
         >
           <Plus className="font-bold" />{" "}
         </Button>

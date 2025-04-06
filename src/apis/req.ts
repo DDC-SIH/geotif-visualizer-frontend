@@ -61,3 +61,20 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
     }
     return undefined;
 }
+
+export const fetchBands = async ( Layers: Partial<Layers>): Promise<{
+    cog: CogType
+} | undefined> => {
+
+    const url = new URL(BACKEND_API_URL);
+    url.pathname = url.pathname + `/${Layers.satID}/cog/show`;
+    url.searchParams.append("processingLevel", Layers.processingLevel as string);
+    url.searchParams.append("type", "MULTI");
+    // url.searchParams.append("type", Layers.layerType == "Singleband" ? Layers.bandNames[0] : "MULTI");
+    const res = await fetch(url.toString());
+    if (res.ok) {
+        const data = await res.json();
+        return data;
+    }
+    return undefined;
+}
