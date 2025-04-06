@@ -19,6 +19,7 @@ import { Input } from "../ui/input";
 import ListItem from "./list-item";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
+import { transcode } from "buffer";
 // import { Layers } from "@/constants/consts";
 
 export default function Export() {
@@ -168,10 +169,11 @@ export default function Export() {
         <Select onValueChange={setSelectedFormat} value={selectedFormat}>
           <SelectTrigger
             className={cn(
-              "bg-transparent h-[35px] font-medium text-white"
+              " h-[35px] font-medium text-white"
             )}
+            value={selectedFormat}
           >
-            <SelectValue placeholder={selectedFormat} />
+            {selectedFormat}
           </SelectTrigger>
           <SelectContent className="bg-neutral-800 text-white font-medium">
             <Input
@@ -200,7 +202,68 @@ export default function Export() {
         {/* Download Button */}
         <Button
           className="mt-4"
-          onClick={handleDownload}
+          onClick={async () => {
+            const layersToDownload = getSelectedLayersData();
+            if (layersToDownload.length === 0) {
+              alert("Please select at least one layer to export");
+              return;
+            }
+
+            try {
+
+              const response = await fetch('http://74.226.242.56:5000/stack-layers', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(
+                  layersToDownload.map(layer => {
+                    const downloadURL = GET_DOWNLOAD_URL({
+                      url: layer.url,
+                      bands: layer.bandIDs.map(band => parseInt(band)),
+                      minMax: layer.minMax.map(band => [band.min, band.max]),
+                      bandExpression: bandExpression,
+                      mode: layer.layerType,
+                      bbox: bbox,
+                      tileFormat: selectedFormat as TILE_FORMAT,
+                    });
+                    return {
+                      transparency: layer.transparency,
+                      directURL: downloadURL,
+                      zIndex: layer.zIndex,
+                    };
+                  }),
+                ),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Failed to download layers: ${response.statusText}`);
+              }
+
+              // Get the filename from the Content-Disposition header, fallback to default name if not present
+              const contentDisposition = response.headers.get('Content-Disposition');
+              let filename = `stacked_layers.${selectedFormat.toLowerCase()}`;
+              if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                  filename = matches[1].replace(/['"]/g, '');
+                }
+              }
+
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              a.remove();
+            } catch (error) {
+              console.error('Error downloading layers:', error);
+              // alert('An error occurred while downloading the layers');
+            }
+          }}
           disabled={selectedLayers.length === 0}
         >
           Download Selected Layers
@@ -211,6 +274,6 @@ export default function Export() {
           {selectedLayers.length} of {Layers?.length || 0} layers selected
         </p>
       </div>
-    </div>
+    </div >
   );
 }

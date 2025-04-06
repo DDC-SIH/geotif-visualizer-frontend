@@ -186,7 +186,7 @@ export const fileFormats: FileFormat[] = [
   "npy",
 ];
 
-type TILE_FORMAT = "png" | "pngraw" | "jpeg" | "jpg" | "webp" | "npy";
+type TILE_FORMAT = "png" | "pngraw" | "jpeg" | "jpg" | "webp" | "npy"|"tif";
 
 interface TITILER_PARAMS {
   url: string;

@@ -51,7 +51,7 @@ function MapSideBar() {
               }`}
             />
           </Button>
-          <Button
+          {/* <Button
             size="icon"
             className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
               activeSidebar === "multiband" ? "bg-neutral-500" : ""
@@ -74,7 +74,7 @@ function MapSideBar() {
                   : "text-white"
               }`}
             />
-          </Button>
+          </Button> */}
           <Button
             size="icon"
             className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
@@ -96,7 +96,7 @@ function MapSideBar() {
               }`}
             />
           </Button>
-          <Button
+          {/* <Button
             size="icon"
             // variant={activeSidebar === "effects" ? "secondary" : "destructive"}
             className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
@@ -117,8 +117,8 @@ function MapSideBar() {
                   : "text-white"
               }`}
             />
-          </Button>
-          <Button
+          </Button> */}
+          {/* <Button
             size="icon"
             className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
               activeSidebar === "maptools" ? "bg-neutral-500" : ""
@@ -138,7 +138,7 @@ function MapSideBar() {
                   : "text-white"
               }`}
             />
-          </Button>
+          </Button> */}
 
           <Button
             size="icon"
