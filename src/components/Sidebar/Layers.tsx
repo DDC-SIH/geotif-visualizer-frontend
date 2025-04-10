@@ -289,7 +289,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
             <DotsVerticalIcon className="h-5 w-5" />
             <DotsVerticalIcon className="-ml-3 h-5 w-5" />
           </div>
-          <span className="text-sm font-medium">{format(date, "dd-MM-yyyy") + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+          <span className="text-sm font-medium">{date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
 
           {/* Delete button */}
           <div className="ml-auto mr-2" onClick={(e) => {
@@ -313,7 +313,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
+                    {date ? date.toISOString().split("T")[0] : <span>Pick a date</span>}
                   </div>
                 </PopoverTrigger>
                 {
@@ -410,7 +410,8 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
                           const newMinMax = [...Layers.minMax];
                           newMinMax[idx] = {
-                            ...newMinMax[idx],
+                            min: band.minimum,
+                            max: band.maximum,
                             minLim: band.minimum,
                             maxLim: band.maximum,
                           };
@@ -472,13 +473,13 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
                 <div className="relative mt-2">
                   <DualRangeSlider
-                    value={[minMax[idx].min, minMax[idx].max]}
-                    min={Layers.minMax[idx].minLim}
-                    max={Layers.minMax[idx].maxLim}
-                    step={1}
-                    minStepsBetweenThumbs={1}
-                    className="mt-2"
-                    onValueChange={(values) => handleMinMaxChange(idx, values)}
+                  value={[minMax[idx].min, minMax[idx].max]}
+                  min={Layers.minMax[idx].minLim}
+                  max={Layers.minMax[idx].maxLim}
+                  step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
+                  minStepsBetweenThumbs={1}
+                  className="mt-2"
+                  onValueChange={(values) => handleMinMaxChange(idx, values)}
                   />
                 </div>
 
