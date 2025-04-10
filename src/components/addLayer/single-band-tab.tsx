@@ -52,7 +52,7 @@ export function SingleBandTab({
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
       layerType: "Singleband",
-      date: new Date(allBands?.aquisition_datetime as number).toDateString(),
+      date: new Date(allBands?.aquisition_datetime as number),
       time: convertFromTimestamp(allBands?.aquisition_datetime as number),
       satID: "3R",
       bandNames: [band.name],

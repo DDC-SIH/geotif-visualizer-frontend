@@ -37,7 +37,7 @@ import ListItem from "./list-item";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
 import { CogType } from "@/types/cog";
-import { fetchAvailableTimes, fetchAllBands } from "@/apis/req";
+import { fetchAvailableTimes, fetchAllBands, fetchAvailableDates } from "@/apis/req";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
   let hours = String(d.getUTCHours()).padStart(2, "0");
@@ -67,7 +67,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [colorMapValue, setColorMapValue] = useState<string>(Layers.colormap || "");
   // Date and time state
   const [date, setDate] = useState<Date | undefined>(
-    Layers.date ? new Date(Layers.date) : undefined
+    Layers.date
   );
   const [dateOpen, setDateOpen] = useState(false);
 
@@ -79,12 +79,14 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
 
   useEffect(() => {
+    console.log("LayerItem mounted");
     // Fetch available dates from the API
-    fetchAvailableTimes(date as Date, Layers)
+    fetchAvailableDates(Layers)
       .then((dates) => {
+        console.log("Available dates:", dates);
         if (dates) {
-          const formattedDates = dates.map(date => ({
-            date: date.aquisition_datetime.toString(),
+          const formattedDates = dates.availableDates.map(date => ({
+            date: date.date,
             datetime: date.datetime
           }));
           setAvailableDates(formattedDates);
@@ -153,9 +155,9 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
         };
       }
     });
-
+    console.log("Bad Date", new Date(allBands?.aquisition_datetime))
     const updatedLayerProp = {
-      date: new Date(allBands?.aquisition_datetime).toDateString(),
+      date: new Date(allBands?.aquisition_datetime),
       time: convertFromTimestamp(allBands?.aquisition_datetime),
       url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
       minMax: newMinMax,
@@ -287,7 +289,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
             <DotsVerticalIcon className="h-5 w-5" />
             <DotsVerticalIcon className="-ml-3 h-5 w-5" />
           </div>
-          <span className="text-sm font-medium">{Layers.date + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+          <span className="text-sm font-medium">{format(date, "dd-MM-yyyy") + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
 
           {/* Delete button */}
           <div className="ml-auto mr-2" onClick={(e) => {
@@ -311,7 +313,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                     className="flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1"
                   >
                     <Calendar className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    {date ? format(date, "dd-MM-yyyy") : <span>Pick a date</span>}
                   </div>
                 </PopoverTrigger>
                 {
@@ -323,7 +325,7 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                           !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
                         }
                         mode="single"
-                        selected={date}
+                        selected={new Date(date.getFullYear(), date.getMonth(), date.getDate())}
                         className="bg-neutral-800 text-white flex flex-col"
                         onSelect={handleDateChange}
                       />

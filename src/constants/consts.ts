@@ -390,7 +390,7 @@ export interface Layers {
   id: string
   layerType: LayerType,
   satID: string,
-  date: string,
+  date: Date,
   time: string,
   bandNames: string[],
   bandIDs: string[],

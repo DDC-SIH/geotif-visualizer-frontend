@@ -29,7 +29,7 @@ export const fetchAvailableDates = async (Layers: Layers): Promise<AvailableDate
 
 // const availableDates = await fetchAvailableDates()
 export const fetchAvailableTimes = async (date: Date, Layers: Layers): Promise<{ aquisition_datetime: number; datetime: string }[]> => {
-    const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
     const url = new URL(BACKEND_API_URL);
     url.pathname = url.pathname + `/${Layers.satID}/cog/available-times`;
     if (formattedDate) {
@@ -47,7 +47,8 @@ export const fetchAvailableTimes = async (date: Date, Layers: Layers): Promise<{
 export const fetchAllBands = async (date: Date, time: string, Layers: Layers): Promise<{
     cog: CogType
 } | undefined> => {
-    const formattedDateTime = `${format(date, "yyyy-MM-dd")}T${time}`;
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    const formattedDateTime = `${formattedDate}T${time}`;
     const url = new URL(BACKEND_API_URL);
     url.pathname = url.pathname + `/${Layers.satID}/cog/show`;
     url.searchParams.append("processingLevel", Layers.processingLevel as string);
