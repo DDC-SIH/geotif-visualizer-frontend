@@ -38,6 +38,7 @@ import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
 import { CogType } from "@/types/cog";
 import { fetchAvailableTimes, fetchAllBands, fetchAvailableDates } from "@/apis/req";
+import { Input } from "../ui/input";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
   let hours = String(d.getUTCHours()).padStart(2, "0");
@@ -451,41 +452,90 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                 </SelectContent>
               </Select>
 
-              <div className="mb-2">
-
-                <div className="flex justify-between text-background text-xs font-medium mb-1">
-                  <div className="mt-1">
-                    MinMax
+              <div className="grid grid-cols-2 text-background text-xs font-medium gap-x-8 mt-2">
+                <div>
+                  <div className="flex justify-between">
+                    Min: ({Layers.minMax[idx].minLim})
                     {minMaxError[idx]?.minError && (
-                      <span className="text-red-600 font-medium ml-1">
-                        ({minMaxError[idx].minError})
-                      </span>
+                      <div className=" text-red-600 font-medium">
+                        {minMaxError[idx].minError}
+                      </div>
                     )}
                   </div>
-                  <div>
-                    {minMaxError[idx]?.maxError && (
-                      <span className="text-red-600 font-medium ml-1">
-                        ({minMaxError[idx].maxError})
-                      </span>
-                    )}
-                  </div>
-                </div>
+                  <Input
+                    defaultValue={minMax[idx].min}
+                    className="h-[25px]"
+                    onChange={(e) => {
+                      const newMinMax = [...minMax];
+                      const newMinMaxError = [...minMaxError];
+                      const evnt = parseInt(e.target.value);
 
-                <div className="relative mt-2">
-                  <DualRangeSlider
-                  value={[minMax[idx].min, minMax[idx].max]}
-                  min={Layers.minMax[idx].minLim}
-                  max={Layers.minMax[idx].maxLim}
-                  step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
-                  minStepsBetweenThumbs={1}
-                  className="mt-2"
-                  onValueChange={(values) => handleMinMaxChange(idx, values)}
+                      if (
+                        evnt >= Layers.minMax[idx].minLim &&
+                        evnt <= newMinMax[idx].max
+                      ) {
+                        newMinMax[idx].min = evnt;
+                        newMinMaxError[idx].minError = "";
+                      } else {
+                        newMinMaxError[idx].minError = "Invalid";
+                      }
+
+                      setMinMax(newMinMax);
+                      setMinMaxError(newMinMaxError);
+                    }}
                   />
                 </div>
+                <div>
+                  <div className="flex justify-between">
+                    Max:({Layers.minMax[idx].maxLim})
+                    {minMaxError[idx]?.maxError && (
+                      <div className=" text-red-600 font-medium">
+                        {minMaxError[idx].maxError}
+                      </div>
+                    )}
+                  </div>
+                  <Input
+                    defaultValue={minMax[idx].max}
+                    className="h-[25px]"
+                    onChange={(e) => {
+                      const newMinMax = [...minMax];
+                      const newMinMaxError = [...minMaxError];
+                      const evnt = parseInt(e.target.value);
 
-                <div className="flex justify-between text-background text-xs mt-1">
-                  <span>{Layers.minMax[idx].minLim}</span>
-                  <span>{Layers.minMax[idx].maxLim}</span>
+                      if (
+                        evnt >= newMinMax[idx].min &&
+                        evnt <= Layers.minMax[idx].maxLim
+                      ) {
+                        newMinMax[idx].max = evnt;
+                        newMinMaxError[idx].maxError = "";
+                      } else {
+                        newMinMaxError[idx].maxError = "Invalid";
+                      }
+
+                      setMinMax(newMinMax);
+                      setMinMaxError(newMinMaxError);
+                    }}
+                  />
+                </div>
+                <div className="w-full mx-auto">
+                  {minMax[idx].min !== Layers.minMax[idx].min &&
+                    minMax[idx].max !== Layers.minMax[idx].max &&
+                    !minMaxError[idx]?.minError &&
+                    !minMaxError[idx]?.maxError && (
+                      <Button
+                        className="mt-2 py-[0.5] px-2 text-xs font-normal h-[30px]"
+                        onClick={() => {
+                          updateMinMax(
+                            layerIndex,
+                            minMax[idx].min,
+                            minMax[idx].max,
+                            idx
+                          );
+                        }}
+                      >
+                        Apply
+                      </Button>
+                    )}
                 </div>
               </div>
             </div>
