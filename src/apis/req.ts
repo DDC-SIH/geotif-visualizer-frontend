@@ -178,6 +178,19 @@ export const fetchLatestAvailableBandsWithData = async (satID: string, processin
     return { bandData: [] };
 };
 
+export const fetchAvailableBandsWithDateTime = async (satID: string, processingLevel: string, date: Date, time: string): Promise<LatestBandsResp> => {
+    const formattedDate = date ? date.toISOString().split("T")[0] : "";
+    const formattedDateTime = `${formattedDate}T${time}`;
+    const url = new URL(BACKEND_API_URL);
+    url.pathname = `/api/metadata/${satID}/${processingLevel}/all-bands-with-datetime`;
+    url.searchParams.append("datetime", formattedDateTime);
+    const res = await fetch(url.toString());
+    if (res.ok) {
+        const data = await res.json();
+        return data;
+    }
+    return { bandData: [] };
+}
 
 // export const fetchBandData = async (satID: string, processingLevel: string, band: string): Promise<CogType> => {
 //     const url = new URL(BACKEND_API_URL);

@@ -24,7 +24,7 @@ export interface BandData {
         stdDev: number;
         nodata_value: number;
         description: string;
-    }[];
+    };
     coverage: {
         lat1: number;
         lat2: number;

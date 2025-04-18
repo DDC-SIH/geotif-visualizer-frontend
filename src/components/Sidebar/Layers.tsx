@@ -37,8 +37,8 @@ import { cn } from "@/lib/utils";
 import ListItem from "./list-item";
 import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
-import { CogItem } from "@/types/cog";
-import { fetchAvailableTimes, fetchAllBands, fetchAvailableDates } from "@/apis/req";
+import { BandData, CogItem } from "@/types/cog";
+import { fetchAvailableTimes, fetchAllBands, fetchAvailableDates, fetchAvailableBandsWithDateTime } from "@/apis/req";
 import { colorMap } from "@/types/colormap";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
@@ -75,8 +75,8 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   const [time, setTime] = useState(Layers.time);
   const [timeOpen, setTimeOpen] = useState(false);
   const [allTimes, setAllTimes] = useState<string[]>([]);
-  const [allBands, setAllBands] = useState<CogItem>();
-  const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
+  const [allBands, setAllBands] = useState<BandData[]>();
+  const [selectedBand, setSelectedBand] = useState<string>(Layers.bandNames[0]);
   const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
 
   useEffect(() => {
@@ -123,11 +123,11 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
   useEffect(() => {
     if (date && time) {
-      fetchAllBands(date, time, Layers)
+      fetchAvailableBandsWithDateTime(Layers.satID, Layers.processingLevel as string, date, time,)
         .then((data) => {
           if (data) {
             console.log("Fetched all bands:", data);
-            setAllBands(data.cog);
+            setAllBands(data.bandData);
           }
         })
         .catch((error) => {
@@ -140,27 +140,29 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   useEffect(() => {
     if (!allBands) return;
 
-    // Instead of replacing band information, only update the URL and time-related properties
-    // Create a copy of the current minMax values to update
+    // // Instead of replacing band information, only update the URL and time-related properties
+    // // Create a copy of the current minMax values to update
     const newMinMax = [...Layers.minMax];
 
-    // For each existing band, update its min/max limits from the allBands data if available
+    // // For each existing band, update its min/max limits from the allBands data if available
     Layers.bandIDs.forEach((bandId, index) => {
-      const matchingBand = allBands.bands.find(band => band.bandId.toString() === bandId);
+      const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
       if (matchingBand) {
         newMinMax[index] = {
-          min: matchingBand.minimum,
-          max: matchingBand.maximum,
-          minLim: matchingBand.minimum,
-          maxLim: matchingBand.maximum,
+          min: matchingBand.bands.minimum,
+          max: matchingBand.bands.maximum,
+          minLim: matchingBand.bands.minimum,
+          maxLim: matchingBand.bands.maximum,
         };
       }
     });
-    console.log("Bad Date", new Date(allBands?.aquisition_datetime))
+
+    const thisBand = allBands.find(band => band.band === selectedBand)
+    if (!thisBand) return;
     const updatedLayerProp = {
-      date: new Date(allBands?.aquisition_datetime),
-      time: convertFromTimestamp(allBands?.aquisition_datetime),
-      url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+      date: new Date(thisBand?.aquisition_datetime as number),
+      time: convertFromTimestamp(thisBand?.aquisition_datetime as number),
+      url: `${thisBand?.filepath || ""}/${thisBand?.filename || ""}`,
       minMax: newMinMax,
       // Don't update bandNames or bandIDs to preserve the current selection
     }
@@ -399,44 +401,53 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                 </SelectTrigger>
                 <SelectContent className="bg-neutral-800 text-background font-semibold">
                   {
-                    allBands?.bands.map((band) => (
+                    allBands?.map((band) => (
                       <ListItem
                         className="hover:bg-neutral-400 bg-neutral-800"
 
                         onClick={() => {
-                          const bandName = band.description;
-                          const newSelectedBands = [...selectedBands];
-                          newSelectedBands[idx] = bandName;
-                          setSelectedBands(newSelectedBands);
-
-                          const newBandIDs = [...Layers.bandIDs];
-                          newBandIDs[idx] = band.bandId.toString();
-
-                          const newMinMax = [...Layers.minMax];
-                          newMinMax[idx] = {
-                            min: band.minimum,
-                            max: band.maximum,
-                            minLim: band.minimum,
-                            maxLim: band.maximum,
-                          };
-
-                          setMinMax(newMinMax);
-
-                          updateLayerFunc(layerIndex, {
-                            bandNames: newSelectedBands,
-                            bandIDs: newBandIDs,
-                            minMax: newMinMax,
+                          setSelectedBand(band.band);
+                          setMinMax((prev) => {
+                            const newMinMax = [...prev];
+                            newMinMax[idx] = {
+                              min: band.bands.min,
+                              max: band.bands.max,
+                            };
+                            return newMinMax;
+                          });
+                          setMinMaxError((prev) => {
+                            const newMinMaxError = [...prev];
+                            newMinMaxError[idx] = {
+                              minError: "",
+                              maxError: "",
+                            };
+                            return newMinMaxError;
                           });
 
+                          if (layerIndex !== -1) {
+                            updateMinMax(layerIndex, band.bands.min, band.bands.max, idx);
+                          }
+
                           setLayers((prev) => {
-                            return (prev ?? []).map((layer, id) => {
-                              if (id === layerIndex) {
-                                return {
-                                  ...layer,
-                                  bandNames: newSelectedBands,
-                                  bandIDs: newBandIDs,
-                                  minMax: newMinMax,
-                                };
+                            if (!prev) return null;
+                            return prev.map((layer) => {
+                              if (layer.id === Layers.id) {
+                                layer.url = `${band.filepath || ""}/${band.filename || ""}`;
+                                // layer.date = new Date(band.aquisition_datetime);
+                                // layer.time = convertFromTimestamp(band.aquisition_datetime);
+                                layer.layer = band.band;
+                                layer.processingLevel = band.processingLevel;
+                                layer.productCode = band.productCode;
+                                layer.satID = band.satelliteId;
+                                layer.bandNames = [band.band];
+                                layer.bandIDs = [band.bands.bandId.toString()];
+                                layer.minMax = [{
+                                  min: band.bands.min,
+                                  max: band.bands.max,
+                                  minLim: band.bands.minimum,
+                                  maxLim: band.bands.maximum,
+                                }];
+
                               }
                               return layer;
                             });
@@ -445,10 +456,10 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                         }}
                         checked={
                           bandName ===
-                          band.description
+                          band.band
                         }
                       >
-                        {band.description}
+                        {band.band}
                       </ListItem>
                     )
                     )}
@@ -877,7 +888,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
                           !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
                         }
                         mode="single"
-                        selected={date&&new Date(date.getFullYear(), date.getMonth(), date.getDate())}
+                        selected={date && new Date(date.getFullYear(), date.getMonth(), date.getDate())}
                         className="bg-neutral-800 text-white flex flex-col"
                         onSelect={handleDateChange}
                       />
@@ -1205,7 +1216,7 @@ export default function LayersSection() {
           className="space-y-0"
         >
           {Layers?.map((layer, index) => (
-            layer.layerType === "RGB" && (
+            layer.layerType === "RGB" ? (
               <MultiBandLayerItem
                 key={layer.id}
                 Layers={layer}
@@ -1214,7 +1225,16 @@ export default function LayersSection() {
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
               />
-            )
+            ) : layer.layerType === "Singleband" ? (
+              <SingleLayerItem
+                key={layer.id}
+                Layers={layer}
+                index={index}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+            ) : null
           ))}
         </Accordion>
       </div>
