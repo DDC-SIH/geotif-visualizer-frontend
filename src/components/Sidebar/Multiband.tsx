@@ -8,11 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import {
-  getAllProcessingLevel,
-  getBandsByLevel,
-  getThreeBandsByLevel,
-} from "@/constants/consts";
+// import {
+//   getAllProcessingLevel,
+//   getBandsByLevel,
+//   getThreeBandsByLevel,
+// } from "@/constants/consts";
 // import { Search } from "lucide-react";
 import ListItem from "./list-item";
 import { Slider } from "../ui/slider";

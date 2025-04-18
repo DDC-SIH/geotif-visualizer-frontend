@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGeoData } from "../../contexts/GeoDataProvider";
-import { Layers } from "@/constants/consts";
+import { Layers, } from "@/constants/consts";
 import { availableColorMaps } from "@/constants/colormaps";
 import { Slider } from "../ui/slider";
 import { DualRangeSlider } from "../ui/dual-range-slider";
@@ -47,7 +47,7 @@ export function convertFromTimestamp(ts: number) {
   return `${hours}:${mins}`;
 }
 
-function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
+function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
   Layers: Layers,
   index: number,
   onDragStart: (e: React.DragEvent, index: number) => void,
@@ -653,14 +653,16 @@ export default function LayersSection() {
           className="space-y-0"
         >
           {Layers?.map((layer, index) => (
-            <LayerItem
-              key={layer.id}
-              Layers={layer}
-              index={index}
-              onDragStart={handleDragStart}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            />
+            layer.layerType === "RGB" && (
+              <MultiBandLayerItem
+                key={layer.id}
+                Layers={layer}
+                index={index}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+            )
           ))}
         </Accordion>
       </div>

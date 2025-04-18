@@ -32,9 +32,10 @@ import {
   DEFAULT_TYPE,
   PROCESSING_LEVELS,
   SATELLITES,
-  TYPES,
+  // TYPES,
 } from "@/constants/addLayerConsts";
 import { Plus } from "lucide-react";
+import { fetchAvailableBandNames, fetchAvailableProductCodes, fetchProcessingLevels, fetchSatelites } from "@/apis/req";
 
 interface SatelliteBandDialogProps {
   trigger?: React.ReactNode;
@@ -43,21 +44,55 @@ interface SatelliteBandDialogProps {
 export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("single");
+  const [availableProducts, setAvailableProducts] = useState<string[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<string>('');
+  const [allSatelites, setAllSatelites] = useState<string[]>([]);
+  const [satellite, setSatellite] = useState('');
+  // const [type, setType] = useState(DEFAULT_TYPE);
+  const [allProcessingLevels, setAllProcessingLevels] = useState<string[]>([]);
+  const [processingLevel, setProcessingLevel] = useState('');
 
-  const [satellite, setSatellite] = useState(DEFAULT_SATELLITE);
-  const [type, setType] = useState(DEFAULT_TYPE);
-  const [processingLevel, setProcessingLevel] = useState(
-    DEFAULT_PROCESSING_LEVEL
-  );
-
-  // Reset type when satellite changes
   useEffect(() => {
-    // Set type to first available type for the selected satellite
-    const availableTypes =
-      SATELLITES[satellite as keyof typeof SATELLITES].types;
-    setType(availableTypes[0]);
+    fetchSatelites().then((data) => {
+      const availableSatellites = data.satellites.map((sat) => sat.satelliteId);
+      setAllSatelites(availableSatellites);
+      setSatellite(availableSatellites[0]); // Set default satellite
+      fetchProcessingLevels(availableSatellites[0]).then((levels) => {
+        const availableLevels = levels.processingLevels.map((level) => level);
+        setAllProcessingLevels(availableLevels);
+        setProcessingLevel(availableLevels[0]); // Set default processing level
+        fetchAvailableProductCodes(availableSatellites[0], availableLevels[0]).then((data) => {
+          const availableProducts = data.productCodes;
+          setAvailableProducts(availableProducts);
+          // setSelectedProduct(availableProducts[0]); // Set default product
+        });
+      });
+      console.log("Available satellites:", availableSatellites);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (satellite) {
+      fetchProcessingLevels(satellite).then((levels) => {
+        const availableLevels = levels.processingLevels.map((level) => level);
+        setAllProcessingLevels(availableLevels);
+        setProcessingLevel(availableLevels[0]); // Set default processing level
+      });
+    }
   }, [satellite]);
 
+  useEffect(() => {
+    if (satellite && processingLevel) {
+      fetchAvailableProductCodes(satellite, processingLevel).then((data) => {
+        const availableProducts = data.productCodes;
+        setAvailableProducts(availableProducts);
+        setSelectedProduct(availableProducts[0]); // Set default product
+
+      });
+    }
+  }, [satellite, processingLevel]);
+
+  useEffect(() => { }, [])
 
   const handleAdd = (data: any) => {
     // Add satellite to the data
@@ -93,71 +128,57 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
         <div className="space-y-4 py-2">
           <Card>
             <CardContent className="space-y-4 pt-6">
-              {/* Satellite Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Satellite</label>
-                <Select value={satellite} onValueChange={setSatellite}>
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select satellite" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(SATELLITES).map((sat) => (
-                      <SelectItem
-                        key={sat.id}
-                        value={sat.id}
-                        disabled={sat.disabled}
-                      >
-                        {sat.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                {/* Satellite Selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Satellite</label>
+                  <Select value={satellite} onValueChange={setSatellite}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select satellite" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allSatelites.map((sat, index) => (
+                        <SelectItem key={index} value={sat}>
+                          {sat}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Type Selector
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Type</label>
-                <Select value={type} onValueChange={setType}>
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SATELLITES[satellite as keyof typeof SATELLITES].types.map(
-                      (typeId) => {
-                        const typeConfig = TYPES[typeId as keyof typeof TYPES];
-                        return (
-                          <SelectItem
-                            key={typeConfig.id}
-                            value={typeConfig.id}
-                            disabled={typeConfig.disabled ?? false}
-                          >
-                            {typeConfig.label}
-                          </SelectItem>
-                        );
-                      }
-                    )}
-                  </SelectContent>
-                </Select>
-              </div> */}
+                {/* Processing Level Selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Processing Level</label>
+                  <Select value={processingLevel} onValueChange={setProcessingLevel}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select processing level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allProcessingLevels.map((level, index) => (
+                        <SelectItem key={index} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-              {/* Processing Level Selector */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Processing Level</label>
-                <Select
-                  value={processingLevel}
-                  onValueChange={setProcessingLevel}
-                >
-                  <SelectTrigger className="bg-white">
-                    <SelectValue placeholder="Select processing level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROCESSING_LEVELS.map((level) => (
-                      <SelectItem key={level.value} value={level.value}>
-                        {level.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {/* Product Selector */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Product</label>
+                  <Select value={selectedProduct} onValueChange={setSelectedProduct}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select Product" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableProducts.map((product, index) => (
+                        <SelectItem key={index} value={product}>
+                          {product}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -179,7 +200,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
             <div className="mt-4">
               <TabsContent value="single">
                 <SingleBandTab
-                  type={type}
+                  product={selectedProduct}
                   satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
@@ -189,7 +210,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
 
               <TabsContent value="multi">
                 <MultiBandTab
-                  type={type}
+                  product={selectedProduct}
                   satelliteId={satellite}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
@@ -197,14 +218,14 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                 />
               </TabsContent>
 
-              <TabsContent value="arithmetic">
+              {/* <TabsContent value="arithmetic">
                 <BandArithmeticTab
-                  type={type}
+                  // type={type}
                   processingLevel={processingLevel}
                   onAdd={handleAdd}
-                  
+
                 />
-              </TabsContent>
+              </TabsContent> */}
             </div>
           </Tabs>
         </div>

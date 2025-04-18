@@ -12,14 +12,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "antd";
 import { CardContent } from "../ui/card";
-import { fetchBands } from "@/apis/req";
-import { CogType } from "@/types/cog";
+import {  fetchBands, fetchLatestAvailableBands, fetchLatestAvailableBandsWithData } from "@/apis/req";
+import { BandData } from "@/types/cog";
+// import { CogType } from "@/types/cog";
 import { Layers } from "@/constants/consts";
 import { convertFromTimestamp } from "../Sidebar/Layers";
 import { useGeoData } from "@/contexts/GeoDataProvider";
 
 interface SingleBandTabProps {
-  type: string;
+  product: string;
   processingLevel: string;
   satelliteId: string;
   onAdd: (data: any) => void;
@@ -27,40 +28,53 @@ interface SingleBandTabProps {
 }
 
 export function SingleBandTab({
-  type,
+  product,
   processingLevel,
   satelliteId,
-  onAdd,
   toggleOpen,
 }: SingleBandTabProps) {
-  const [band, setBand] = useState({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
-  const [allBands, setAllBands] = useState<CogType>();
+  const [band, setBand] = useState<BandData | null>(null);
+  const [allBands, setAllBands] = useState<BandData[]>([]);
   const { addLayer } = useGeoData();
 
   useEffect(() => {
-    fetchBands({ satID: satelliteId, processingLevel: processingLevel }).then((data) => {
-      setAllBands(data?.cog);
+    fetchLatestAvailableBandsWithData(satelliteId, processingLevel, product).then((data) => {
+      console.log(data);
+      setAllBands(data.bandData);
+      setBand(data.bandData[0]);
     })
-  }, [processingLevel]);
+    // fetchLatestAvailableBands(satelliteId, processingLevel, product).then((data) => {
+    //   setAllBands(data.bands);
+    //   setBand(data.bands[0]);
+    // })
+
+  }, [processingLevel, product]);
+
+
   // Reset band when type changes
 
   const handleAdd = () => {
 
     if (!band) return;
-    console.log(`${allBands?.filepath || ""}/${allBands?.filename || ""}`)
+    console.log(`${band?.filepath || ""}/${band?.filename || ""}`)
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
       layerType: "Singleband",
-      date: new Date(allBands?.aquisition_datetime as number),
-      time: convertFromTimestamp(allBands?.aquisition_datetime as number),
-      satID: "3R",
-      bandNames: [band.name],
-      bandIDs: [band.id],
-      minMax: [band.minMax],
-      url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+      date: new Date(band?.aquisition_datetime as number),
+      time: convertFromTimestamp(band?.aquisition_datetime as number),
+      satID: satelliteId,
+      bandNames: [band.band],
+      bandIDs: [band.bands.map((band) => band.bandId).toString()],
+      minMax: band.bands.map((band) => ({
+        min: band.min,
+        max: band.max,
+        minLim: band.minimum,
+        maxLim: band.maximum,
+      })),
+      url: `${band?.filepath || ""}/${band?.filename || ""}`,
       colormap: "",
       transparency: 1,
-      processingLevel: allBands?.processingLevel,
+      processingLevel: band?.processingLevel,
       layer: "",
     };
     addLayer(layer);
@@ -75,27 +89,17 @@ export function SingleBandTab({
       <CardContent className="space-y-4 pt-6">
         <div className="space-y-2">
           <label className="text-sm font-medium">Band Selector</label>
-          <Select value={band.name} onValueChange={(val) => {
-
-            const selectedBand = allBands?.bands.find((band) => band.description === val);
-            if (selectedBand) {
-              setBand({
-                name: selectedBand.description, id: selectedBand.bandId.toString(), minMax: {
-                  min: selectedBand.min,
-                  max: selectedBand.max,
-                  minLim: selectedBand.min,
-                  maxLim: selectedBand.max,
-                }
-              });
-            }
+          <Select value={band?.band} onValueChange={(value) => {
+            const selectedBand = allBands.find((band) => band.band === value);
+            setBand(selectedBand || null);
           }}>
             <SelectTrigger className="bg-white">
               <SelectValue placeholder="Select band" />
             </SelectTrigger>
             <SelectContent>
-              {allBands?.bands.map((band) => (
-                <SelectItem key={band.bandId} value={band.description}>
-                  {band.description}
+              {allBands.map((band, index) => (
+                <SelectItem key={index} value={band.band}>
+                  {band.band}
                 </SelectItem>
               ))}
             </SelectContent>
