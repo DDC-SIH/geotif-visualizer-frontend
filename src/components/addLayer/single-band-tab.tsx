@@ -10,7 +10,6 @@ import {
   SelectValue,
 } from "@/components/ui/singleselector";
 import { Button } from "@/components/ui/button";
-import { TYPES } from "@/constants/addLayerConsts";
 import { Card } from "antd";
 import { CardContent } from "../ui/card";
 import { fetchBands } from "@/apis/req";

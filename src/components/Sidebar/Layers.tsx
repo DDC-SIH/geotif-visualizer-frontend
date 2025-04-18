@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useGeoData } from "../../contexts/GeoDataProvider";
-import { Layers, availableColorMaps } from "@/constants/consts";
+import { Layers } from "@/constants/consts";
+import { availableColorMaps } from "@/constants/colormaps";
 import { Slider } from "../ui/slider";
 import { DualRangeSlider } from "../ui/dual-range-slider";
 import {
@@ -473,13 +474,13 @@ function LayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
 
                 <div className="relative mt-2">
                   <DualRangeSlider
-                  value={[minMax[idx].min, minMax[idx].max]}
-                  min={Layers.minMax[idx].minLim}
-                  max={Layers.minMax[idx].maxLim}
-                  step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
-                  minStepsBetweenThumbs={1}
-                  className="mt-2"
-                  onValueChange={(values) => handleMinMaxChange(idx, values)}
+                    value={[minMax[idx].min, minMax[idx].max]}
+                    min={Layers.minMax[idx].minLim}
+                    max={Layers.minMax[idx].maxLim}
+                    step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
+                    minStepsBetweenThumbs={1}
+                    className="mt-2"
+                    onValueChange={(values) => handleMinMaxChange(idx, values)}
                   />
                 </div>
 

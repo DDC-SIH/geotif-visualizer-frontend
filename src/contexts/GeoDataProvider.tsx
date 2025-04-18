@@ -6,14 +6,10 @@ import {
   GeoJSONError,
 } from "../../types/geojson.ts";
 import {
-  BANDS_MASTER,
   basemap,
   baseMaps,
-  GeoJSONEndpoint,
-  GET_FINAL_DOWNLOAD_URL,
   GET_TITILER_URL,
   Layers,
-  SELECTED_LAYERS,
 } from "../constants/consts.ts";
 import TileLayer from "ol/layer/Tile";
 import { ImageTile, TileImage, TileWMS } from "ol/source";
@@ -186,7 +182,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     forceRender((prev) => prev + 1);
   };
 
-  const removeLayer = (index) => {
+  const removeLayer = (index: number) => {
     if (window.map && window.map.removeLayer && layersRef.current[index]) {
       window.map.removeLayer(layersRef.current[index]);
     }
@@ -272,7 +268,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
             minMax: updatedLayer.minMax.map((band) => [band.min, band.max]),
             bandExpression: bandExpression,
             mode: updatedLayer.layerType,
-            colorMap: colorMap,
+            colorMap: colorMap ||"",
           }),
           transition: 0,
           crossOrigin: "anonymous",

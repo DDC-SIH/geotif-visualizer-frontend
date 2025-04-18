@@ -15,7 +15,7 @@ import ProcessingTemplates from "./processingTemplates";
 import { useGeoData } from "@/contexts/GeoDataProvider";
 import Basemap from "./Basemap";
 import LayersSection from "./Layers";
-import MultibandSection from "./Multiband";
+// import MultibandSection from "./Multiband";
 
 function MapSideBar() {
   const { mode, setMode } = useGeoData();
@@ -184,7 +184,7 @@ function MapSideBar() {
           {activeSidebar === "basemap" && <Basemap />}
           {activeSidebar === "singleband" && <LayersSection />}
           {activeSidebar === "export" && <Export />}
-          {activeSidebar === "multiband" && <MultibandSection />}
+          {/* {activeSidebar === "multiband" && <MultibandSection />} */}
         </div>
       </div>
     </div>

@@ -4,8 +4,7 @@ import {
   fileFormats,
   GET_DOWNLOAD_URL,
   GET_FINAL_DOWNLOAD_URL,
-  mapBandsToTiTilerBands,
-  minMaxToTiTiler,
+
 } from "@/constants/consts";
 import { useMemo, useState } from "react";
 import {
@@ -20,6 +19,7 @@ import ListItem from "./list-item";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { transcode } from "buffer";
+import { Loader2 } from "lucide-react";
 // import { Layers } from "@/constants/consts";
 
 export default function Export() {
@@ -29,6 +29,7 @@ export default function Export() {
   const [searchInput, setSearchInput] = useState("");
   const [selectedLayers, setSelectedLayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Handle select all checkbox
   const handleSelectAll = (checked: boolean) => {
@@ -153,7 +154,7 @@ export default function Export() {
                   onCheckedChange={(checked) => handleLayerSelect(layer.id, !!checked)}
                 />
                 <Label htmlFor={`layer-${layer.id}`} className="text-sm font-normal cursor-pointer flex-1">
-                  {layer.date}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"}
+                  {layer.date.toISOString().split("T")[0]}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"}
                 </Label>
               </div>
             ))
@@ -210,6 +211,7 @@ export default function Export() {
             }
 
             try {
+              setIsLoading(true);
 
               const response = await fetch('http://74.226.242.56:5000/stack-layers', {
                 method: 'POST',
@@ -262,11 +264,20 @@ export default function Export() {
             } catch (error) {
               console.error('Error downloading layers:', error);
               // alert('An error occurred while downloading the layers');
+            } finally {
+              setIsLoading(false);
             }
           }}
-          disabled={selectedLayers.length === 0}
+          disabled={selectedLayers.length === 0 || isLoading}
         >
-          Download Selected Layers
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Downloading...
+            </>
+          ) : (
+            "Download Selected Layers"
+          )}
         </Button>
 
         {/* Layer count indicator */}
