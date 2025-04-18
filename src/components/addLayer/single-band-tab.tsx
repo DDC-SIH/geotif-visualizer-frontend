@@ -72,7 +72,7 @@ export function SingleBandTab({
         maxLim: band.maximum,
       })),
       url: `${band?.filepath || ""}/${band?.filename || ""}`,
-      colormap: "",
+      colormap: undefined,
       transparency: 1,
       processingLevel: band?.processingLevel,
       productCode: band?.productCode,

@@ -39,6 +39,7 @@ import { Calendar as CalendarComponent } from "../ui/calendar";
 import { format } from "date-fns";
 import { CogItem } from "@/types/cog";
 import { fetchAvailableTimes, fetchAllBands, fetchAvailableDates } from "@/apis/req";
+import { colorMap } from "@/types/colormap";
 export function convertFromTimestamp(ts: number) {
   let d = new Date(ts);
   let hours = String(d.getUTCHours()).padStart(2, "0");
@@ -246,10 +247,12 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     setDate(newDate);
     if (newDate && layerIndex !== -1) {
       const formattedDate = format(newDate, "yyyy-MM-dd");
+
       setLayers((prev) => {
+        if (!prev) return null;
         return prev.map((layer, idx) => {
           if (idx === layerIndex) {
-            return { ...layer, date: formattedDate };
+            return { ...layer, date: new Date(formattedDate) };
           }
           return layer;
         });
@@ -263,6 +266,7 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     setTime(newTime);
     if (layerIndex !== -1) {
       setLayers((prev) => {
+        if (!prev) return null;
         return prev.map((layer, idx) => {
           if (idx === layerIndex) {
             return { ...layer, time: newTime };
@@ -289,7 +293,7 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
             <DotsVerticalIcon className="h-5 w-5" />
             <DotsVerticalIcon className="-ml-3 h-5 w-5" />
           </div>
-          <span className="text-sm font-medium">{date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+          <span className="text-sm font-medium">{date && date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
 
           {/* Delete button */}
           <div className="ml-auto mr-2" onClick={(e) => {
@@ -325,7 +329,7 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                           !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
                         }
                         mode="single"
-                        selected={new Date(date.getFullYear(), date.getMonth(), date.getDate())}
+                        selected={date && new Date(date.getFullYear(), date.getMonth(), date.getDate())}
                         className="bg-neutral-800 text-white flex flex-col"
                         onSelect={handleDateChange}
                       />
@@ -538,7 +542,7 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                             setColorMapValue(currentValue);
 
                             if (layerIndex !== -1) {
-                              updateColorMap(layerIndex, currentValue);
+                              updateColorMap(layerIndex, currentValue as colorMap);
                             }
 
                             setOpen(false);
@@ -571,6 +575,7 @@ function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
                 const newOpacity = val[0] / 100;
 
                 setLayers((prev) => {
+                  if (!prev) return null;
                   return prev.map((layer) => {
                     if (layer.id === Layers.id) {
                       layer.transparency = newOpacity;
@@ -643,6 +648,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
 
   useEffect(() => {
     // Fetch available times from the API
+    // if(allTimes) return;
     fetchAvailableTimes(date as Date, Layers)
       .then((times) => {
         if (times) {
@@ -791,9 +797,10 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
     if (newDate && layerIndex !== -1) {
       const formattedDate = format(newDate, "yyyy-MM-dd");
       setLayers((prev) => {
+        if (!prev) return null;
         return prev.map((layer, idx) => {
           if (idx === layerIndex) {
-            return { ...layer, date: formattedDate };
+            return { ...layer, date: new Date(formattedDate) };
           }
           return layer;
         });
@@ -807,6 +814,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
     setTime(newTime);
     if (layerIndex !== -1) {
       setLayers((prev) => {
+        if (!prev) return null;
         return prev.map((layer, idx) => {
           if (idx === layerIndex) {
             return { ...layer, time: newTime };
@@ -833,7 +841,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
             <DotsVerticalIcon className="h-5 w-5" />
             <DotsVerticalIcon className="-ml-3 h-5 w-5" />
           </div>
-          <span className="text-sm font-medium">{date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+          <span className="text-sm font-medium">{date && date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
 
           {/* Delete button */}
           <div className="ml-auto mr-2" onClick={(e) => {
@@ -869,7 +877,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
                           !availableDates.some((availableDate) => new Date(availableDate.date).toDateString() === date.toDateString())
                         }
                         mode="single"
-                        selected={new Date(date.getFullYear(), date.getMonth(), date.getDate())}
+                        selected={date&&new Date(date.getFullYear(), date.getMonth(), date.getDate())}
                         className="bg-neutral-800 text-white flex flex-col"
                         onSelect={handleDateChange}
                       />
@@ -1082,7 +1090,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
                             setColorMapValue(currentValue);
 
                             if (layerIndex !== -1) {
-                              updateColorMap(layerIndex, currentValue);
+                              updateColorMap(layerIndex, currentValue as colorMap);
                             }
 
                             setOpen(false);
@@ -1115,6 +1123,7 @@ function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: 
                 const newOpacity = val[0] / 100;
 
                 setLayers((prev) => {
+                  if (!prev) return null;
                   return prev.map((layer) => {
                     if (layer.id === Layers.id) {
                       layer.transparency = newOpacity;

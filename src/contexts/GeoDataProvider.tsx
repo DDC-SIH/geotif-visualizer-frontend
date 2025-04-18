@@ -13,6 +13,7 @@ import {
 } from "../constants/consts.ts";
 import TileLayer from "ol/layer/Tile";
 import { ImageTile, TileImage, TileWMS } from "ol/source";
+import { colorMap } from "@/types/colormap.ts";
 
 interface GeoDataContextType {
   geoData: GeoJSON | GeoJSONError | null;
@@ -45,7 +46,7 @@ interface GeoDataContextType {
   updateMinMax: (index: number, min: number, max: number, bandIndex?: number) => void;
   updateBaseMap: (selectedBasemap: basemap) => void;
   reorderLayers: (sourceIndex: number, destinationIndex: number) => void;
-  updateColorMap: (index: number, colorMap: ColorMap) => void;
+  updateColorMap: (index: number, colorMap: colorMap) => void;
   updateLayerFunc: (index: number, updatedLayerProps: Partial<Layers>) => void;
 }
 
@@ -245,7 +246,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     forceRender((prev) => prev + 1);
   };
 
-  const updateColorMap = (index: number, colorMap: ColorMap) => {
+  const updateColorMap = (index: number, colorMap: colorMap) => {
     if (layersRef.current[index]) {
       setLayers((prevLayers) => {
         if (!prevLayers) return null;
@@ -268,7 +269,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
             minMax: updatedLayer.minMax.map((band) => [band.min, band.max]),
             bandExpression: bandExpression,
             mode: updatedLayer.layerType,
-            colorMap: colorMap ||"",
+            colorMap: colorMap,
           }),
           transition: 0,
           crossOrigin: "anonymous",

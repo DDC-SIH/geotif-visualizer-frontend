@@ -18,12 +18,12 @@ import { Input } from "../ui/input";
 import ListItem from "./list-item";
 import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
-import { transcode } from "buffer";
 import { Loader2 } from "lucide-react";
+import { FileFormat } from "types/geojson";
 // import { Layers } from "@/constants/consts";
 
 export default function Export() {
-  const { bbox, url, mode, bandExpression, Layers } = useGeoData();
+  const { bbox, bandExpression, Layers } = useGeoData();
 
   const [selectedFormat, setSelectedFormat] = useState(fileFormats[0]);
   const [searchInput, setSearchInput] = useState("");
@@ -167,7 +167,9 @@ export default function Export() {
       {/* Export Format Selection */}
       <div className="flex flex-col">
         <label className="text-sm font-medium mb-2">Export Format</label>
-        <Select onValueChange={setSelectedFormat} value={selectedFormat}>
+        <Select onValueChange={(val) => {
+          setSelectedFormat(val as FileFormat);
+        }} value={selectedFormat}>
           <SelectTrigger
             className={cn(
               " h-[35px] font-medium text-white"
@@ -227,7 +229,7 @@ export default function Export() {
                       bandExpression: bandExpression,
                       mode: layer.layerType,
                       bbox: bbox,
-                      tileFormat: selectedFormat as TILE_FORMAT,
+                      tileFormat: selectedFormat as FileFormat,
                     });
                     return {
                       transparency: layer.transparency,

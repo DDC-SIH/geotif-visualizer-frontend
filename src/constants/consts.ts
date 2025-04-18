@@ -222,7 +222,7 @@ export interface Layers {
     maxLim: number;
   }[];
   url: string,
-  colormap: colorMap | "",
+  colormap: colorMap | undefined,
   transparency: number,
   processingLevel?: string,
   layer: unknown,

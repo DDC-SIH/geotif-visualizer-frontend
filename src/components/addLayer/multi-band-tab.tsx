@@ -62,7 +62,7 @@ export function MultiBandTab({
       bandIDs: [redBand.id, greenBand.id, blueBand.id],
       minMax: [redBand.minMax, greenBand.minMax, blueBand.minMax],
       url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
-      colormap: "",
+      colormap: undefined,
       transparency: 1,
       processingLevel: allBands?.processingLevel,
       productCode: allBands?.productCode,

@@ -5,7 +5,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { colorMaps } from "../constants/consts"
+import { availableColorMaps } from "@/constants/colormaps";
 import { useGeoData } from "../contexts/GeoDataProvider";
 import { ColorMap } from "types/geojson";
 
@@ -19,7 +19,7 @@ export function SelectScrollableColorMap() {
                 <SelectValue placeholder="Select a color map" />
             </SelectTrigger>
             <SelectContent>
-                {colorMaps.map((colorMap) => (
+                {availableColorMaps.map((colorMap: string) => (
                     <SelectItem value={colorMap}>{colorMap}</SelectItem>
                 ))}
             </SelectContent>
