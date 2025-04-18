@@ -66,9 +66,7 @@ export const fetchAvailableTimes = async (date: Date, Layers: Layers): Promise<{
     }
     return [];
 };
-export const fetchAllBands = async (date: Date, time: string, Layers: Layers): Promise<{
-    cog: LatestBandsResp
-} | undefined> => {
+export const fetchAllBands = async (date: Date, time: string, Layers: Layers): Promise<CogItemResponse | undefined> => {
     const formattedDate = date ? date.toISOString().split("T")[0] : "";
     const formattedDateTime = `${formattedDate}T${time}`;
     const url = new URL(BACKEND_API_URL);
@@ -76,6 +74,9 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
     url.searchParams.append("processingLevel", Layers.processingLevel as string);
     url.searchParams.append("datetime", formattedDateTime);
     url.searchParams.append("type", "MULTI");
+    if (Layers.productCode) {
+        url.searchParams.append("productCode", Layers.productCode);
+    }
     // url.searchParams.append("type", Layers.layerType == "Singleband" ? Layers.bandNames[0] : "MULTI");
     const res = await fetch(url.toString());
     if (res.ok) {
@@ -85,12 +86,15 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
     return undefined;
 }
 
-export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemResponse|null> => {
+export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemResponse | null> => {
 
     const url = new URL(BACKEND_API_URL);
     url.pathname = `api/metadata/${Layers.satID}/cog/show`;
     url.searchParams.append("processingLevel", Layers.processingLevel as string);
     url.searchParams.append("type", "MULTI");
+    if (Layers.productCode) {
+        url.searchParams.append("productCode", Layers.productCode);
+    }
     const res = await fetch(url.toString());
     if (res.ok) {
         const data = await res.json();

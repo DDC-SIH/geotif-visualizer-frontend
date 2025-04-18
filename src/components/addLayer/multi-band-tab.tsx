@@ -65,6 +65,7 @@ export function MultiBandTab({
       colormap: "",
       transparency: 1,
       processingLevel: allBands?.processingLevel,
+      productCode: allBands?.productCode,
       layer: "",
     };
     addLayer(layer);

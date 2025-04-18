@@ -227,6 +227,7 @@ export interface Layers {
   processingLevel?: string,
   layer: unknown,
   zIndex?: number, // Add zIndex property to track layer positioning
+  productCode?: string,
 }
 
 

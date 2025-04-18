@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "antd";
 import { CardContent } from "../ui/card";
-import {  fetchBands, fetchLatestAvailableBands, fetchLatestAvailableBandsWithData } from "@/apis/req";
+import {  fetchLatestAvailableBandsWithData } from "@/apis/req";
 import { BandData } from "@/types/cog";
 // import { CogType } from "@/types/cog";
 import { Layers } from "@/constants/consts";
@@ -75,6 +75,7 @@ export function SingleBandTab({
       colormap: "",
       transparency: 1,
       processingLevel: band?.processingLevel,
+      productCode: band?.productCode,
       layer: "",
     };
     addLayer(layer);
