@@ -15,9 +15,11 @@ import { Card, CardContent } from "../ui/card";
 // import { CogData } from "@/types/cog";
 import { CogItem } from "@/types/cog";
 import { Layers } from "@/constants/consts";
-import { convertFromTimestamp } from "@/components/Sidebar/Layers";
+// import  convertFromTimestamp  from "";
+import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
 import { useGeoData } from "@/contexts/GeoDataProvider";
 import { fetchBands } from "@/apis/req";
+import { TZDate } from "react-day-picker";
 
 interface MultiBandTabProps {
   product: string;
@@ -55,7 +57,7 @@ export function MultiBandTab({
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
       layerType: "RGB",
-      date: new Date(allBands?.aquisition_datetime as number),
+      date: new TZDate(allBands?.aquisition_datetime as number, "UTC"),
       time: convertFromTimestamp(allBands?.aquisition_datetime as number),
       satID: satelliteId || "",
       bandNames: [redBand.name, greenBand.name, blueBand.name],

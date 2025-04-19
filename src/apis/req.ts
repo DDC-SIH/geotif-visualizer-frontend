@@ -40,6 +40,7 @@ export const fetchAvailableDates = async (Layers: Layers): Promise<AvailableDate
     const url = new URL(BACKEND_API_URL);
     url.pathname = `/api/metadata/${Layers.satID}/cog/available-dates`;
     url.searchParams.append("processingLevel", Layers.processingLevel as string);
+    console.log("Request URL:", url.toString());
     const res = await fetch(url.toString());
     if (res.ok) {
         const data = await res.json();
@@ -83,7 +84,10 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
         const data = await res.json();
         return data;
     }
-    return undefined;
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return undefined;
+    }
 }
 
 export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemResponse | null> => {
@@ -99,6 +103,10 @@ export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemRespon
     if (res.ok) {
         const data = await res.json();
         return data;
+    }
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return null;
     }
     return null;
     // return undefined;
@@ -123,6 +131,10 @@ export const fetchProcessingLevels = async (satelliteId: string): Promise<Proces
         const data = await res.json();
         return data;
     }
+    if (!res.ok) {
+        console.error(`Failed to fetch processing levels: ${res.status} - ${res.statusText}`);
+        return { processingLevels: [] };
+    }
     return { processingLevels: [] };
 }
 
@@ -136,6 +148,10 @@ export const fetchAvailableBandNames = async (satID: string, processingLevel: st
         const data = await res.json();
         return data;
     }
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return { bands: [] };
+    }
     return { bands: [] };
 }
 
@@ -146,6 +162,10 @@ export const fetchAvailableProductCodes = async (satID: string, processingLevel:
     if (res.ok) {
         const data = await res.json();
         return data;
+    }
+    if (!res.ok) {
+        console.error(`Failed to fetch product codes: ${res.status} - ${res.statusText}`);
+        return { productCodes: [] };
     }
     return { productCodes: [] };
 }
@@ -161,6 +181,10 @@ export const fetchLatestAvailableBands = async (satID: string, processingLevel: 
         const data = await res.json();
         return data;
     }
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return { bands: [] };
+    }
     return { bands: [] };
 };
 
@@ -175,6 +199,10 @@ export const fetchLatestAvailableBandsWithData = async (satID: string, processin
         const data = await res.json();
         return data;
     }
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return { bandData: [] };
+    }
     return { bandData: [] };
 };
 
@@ -188,6 +216,10 @@ export const fetchAvailableBandsWithDateTime = async (satID: string, processingL
     if (res.ok) {
         const data = await res.json();
         return data;
+    }
+    if (!res.ok) {
+        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        return { bandData: [] };
     }
     return { bandData: [] };
 }

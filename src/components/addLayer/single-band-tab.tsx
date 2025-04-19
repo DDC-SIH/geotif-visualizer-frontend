@@ -12,12 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "antd";
 import { CardContent } from "../ui/card";
-import {  fetchLatestAvailableBandsWithData } from "@/apis/req";
+import { fetchLatestAvailableBandsWithData } from "@/apis/req";
 import { BandData } from "@/types/cog";
 // import { CogType } from "@/types/cog";
 import { Layers } from "@/constants/consts";
-import { convertFromTimestamp } from "../Sidebar/Layers";
+import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
+
 import { useGeoData } from "@/contexts/GeoDataProvider";
+import { TZDate } from "react-day-picker";
 
 interface SingleBandTabProps {
   product: string;
@@ -36,7 +38,7 @@ export function SingleBandTab({
   const [band, setBand] = useState<BandData | null>(null);
   const [allBands, setAllBands] = useState<BandData[]>([]);
   const { addLayer } = useGeoData();
-
+  
   useEffect(() => {
     fetchLatestAvailableBandsWithData(satelliteId, processingLevel, product).then((data) => {
       console.log(data);
@@ -56,11 +58,10 @@ export function SingleBandTab({
   const handleAdd = () => {
 
     if (!band) return;
-    console.log(`${band?.filepath || ""}/${band?.filename || ""}`)
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
       layerType: "Singleband",
-      date: new Date(band?.aquisition_datetime as number),
+      date: new TZDate(band?.aquisition_datetime as number, "UTC"),
       time: convertFromTimestamp(band?.aquisition_datetime as number),
       satID: satelliteId,
       bandNames: [band.band],

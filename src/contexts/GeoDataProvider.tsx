@@ -46,7 +46,7 @@ interface GeoDataContextType {
   updateMinMax: (index: number, min: number, max: number, bandIndex?: number) => void;
   updateBaseMap: (selectedBasemap: basemap) => void;
   reorderLayers: (sourceIndex: number, destinationIndex: number) => void;
-  updateColorMap: (index: number, colorMap: colorMap) => void;
+  updateColorMap: (index: number, colorMap: colorMap | undefined) => void;
   updateLayerFunc: (index: number, updatedLayerProps: Partial<Layers>) => void;
 }
 
@@ -246,7 +246,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     forceRender((prev) => prev + 1);
   };
 
-  const updateColorMap = (index: number, colorMap: colorMap) => {
+  const updateColorMap = (index: number, colorMap: colorMap | undefined) => {
     if (layersRef.current[index]) {
       setLayers((prevLayers) => {
         if (!prevLayers) return null;
