@@ -48,6 +48,7 @@ interface GeoDataContextType {
   reorderLayers: (sourceIndex: number, destinationIndex: number) => void;
   updateColorMap: (index: number, colorMap: colorMap | undefined) => void;
   updateLayerFunc: (index: number, updatedLayerProps: Partial<Layers>) => void;
+  updateBaseMapOpacity: (opacity: number) => void;
 }
 
 const GeoDataContext = createContext<GeoDataContextType | undefined>(undefined);
@@ -127,6 +128,10 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     })
   );
 
+  const outlineLayer = useRef(
+    
+  )
+
   useEffect(() => {
     window.map?.addLayer(basemapLayer.current);
   }, []);
@@ -148,6 +153,14 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
       })
     );
   };
+
+  const updateBaseMapOpacity = (opacity: number) => {
+    basemapLayer.current.setOpacity(opacity);
+    setLayerTransparency((prev) => ({
+      ...prev,
+      baseMapLayer: opacity,
+    }));
+  }
 
   const addLayer = (layer: Layers) => {
     const zIndex = Layers ? 1000 - Layers.length : 1000;
@@ -229,7 +242,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     const [removedLayer] = layersRef.current.splice(sourceIndex, 1);
     layersRef.current.splice(destinationIndex, 0, removedLayer);
 
-    newLayers.forEach((layer, index) => {
+    newLayers.forEach((_, index) => {
       const zIndex = 1000 - index;
 
       newLayers[index] = {
@@ -404,23 +417,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
       forceRender((prev) => prev + 1);
     }
   };
-  // const [availableDates, setAvailableDates] = useState([]);
-  // useEffect(() => {
-  //   // Fetch available dates from the API
-  //   fetchAvailableDates()
-  //     .then((data) => {
-  //       if (data) {
-  //         const convertedDates = data.availableDates.map((date) => {
-  //           return new Date(date.datetime)
-  //         });
-  //         console.log("Available dates:", convertedDates);
-  //         setAvailableDates(convertedDates);
-  //       }
-  //     })
-  //     .catch((error) => {
-  //       console.error("Error fetching available dates:", error);
-  //     });
-  // }, [])
+
   return (
     <GeoDataContext.Provider
       value={{
@@ -456,6 +453,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         reorderLayers,
         updateColorMap,
         updateLayerFunc,
+        updateBaseMapOpacity
       }}
     >
       {children}

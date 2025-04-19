@@ -10,8 +10,11 @@ import {
 import { useGeoData } from "../contexts/GeoDataProvider";
 import { fromLonLat, toLonLat, transformExtent } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
-import { FiZoomIn, FiZoomOut, FiMaximize, FiSearch, FiMapPin, FiNavigation } from "react-icons/fi";
+import { Search, ZoomIn, ZoomOut, Maximize, MapPin, Navigation, Eye, EyeOff } from "lucide-react";
 import { buffer } from 'ol/extent';
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { cn } from "@/lib/utils";
 
 // Declare the map on the window for global access
 declare global {
@@ -29,6 +32,7 @@ function MapComponent() {
   const [mousePosition, setMousePosition] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+  const [showCoords, setShowCoords] = useState(true);
   const [searchMode, setSearchMode] = useState<'coordinates' | 'location'>('location');
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -69,9 +73,7 @@ function MapComponent() {
     // Create the map instance
     const map = new Map({
       target: mapRef.current,
-      layers: [
-        // basemapLayer // Base OSM layer
-      ],
+      layers: [],
       view: new View({
         zoom: defaultMapConfig.zoom,
         center: fromLonLat(defaultMapConfig.center),
@@ -296,233 +298,143 @@ function MapComponent() {
 
   return (
     <div
-      style={{ height: "100vh", width: "100%", position: "relative" }}
+      className="h-screen w-full relative"
       id="map"
       ref={mapRef}
-      className="map-container top-0 left-0"
     >
-      {mousePosition && (
+      {/* Coordinate Display with Toggle */}
+      {mousePosition && showCoords && (
         <div
-          className="coordinate-display"
-          style={{
-            position: "absolute",
-            top: "10px",
-            right: "10px",
-            background: "rgba(255, 255, 255, 0.8)",
-            padding: "5px 10px",
-            borderRadius: "4px",
-            fontSize: "14px",
-            fontFamily: "monospace",
-            zIndex: 1000,
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)"
-          }}
+          className="absolute top-4 right-4 bg-neutral-900/80 backdrop-blur-sm p-2 rounded-md text-sm font-mono text-primary-foreground z-[1001] flex items-center gap-2 border border-neutral-800"
         >
-          Lon: {mousePosition[0]}, Lat: {mousePosition[1]}
+          <span>Lon: {mousePosition[0]}, Lat: {mousePosition[1]}</span>
+          <Button
+            
+            size="icon"
+            className="h-6 w-6 p-1 text-neutral-400 hover:text-white"
+            onClick={() => setShowCoords(false)}
+          >
+            <EyeOff size={14} />
+          </Button>
         </div>
       )}
 
+      {!showCoords && (
+        <Button
+          className="absolute top-4 right-4 z-[1001] bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
+          size="sm"
+          
+          onClick={() => setShowCoords(true)}
+        >
+          <Eye size={14} className="mr-1" /> Show Coordinates
+        </Button>
+      )}
+
       {/* Map Control Buttons */}
-      <div
-        className="map-controls"
-        style={{
-          position: "absolute",
-          bottom: "20px",
-          right: "20px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          zIndex: 1000
-        }}
-      >
-        <button
+      <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-[1000]">
+        <Button
           onClick={handleZoomIn}
-          style={{
-            width: "40px",
-            height: "40px",
-            backgroundColor: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-          }}
+          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
           title="Zoom In"
+          variant="outline"
         >
-          <FiZoomIn size={20} />
-        </button>
+          <ZoomIn size={18} className="text-white" />
+        </Button>
 
-        <button
+        <Button
           onClick={handleZoomOut}
-          style={{
-            width: "40px",
-            height: "40px",
-            backgroundColor: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-          }}
+          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
           title="Zoom Out"
+          variant="outline"
         >
-          <FiZoomOut size={20} />
-        </button>
+          <ZoomOut size={18} className="text-white" />
+        </Button>
 
-        <button
+        <Button
           onClick={handleFitView}
-          style={{
-            width: "40px",
-            height: "40px",
-            backgroundColor: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-          }}
+          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
           title="Fit to Default View"
+          variant="outline"
         >
-          <FiMaximize size={18} />
-        </button>
+          <Maximize size={16} className="text-white" />
+        </Button>
 
-        <button
+        <Button
           onClick={() => setShowSearch(!showSearch)}
-          style={{
-            width: "40px",
-            height: "40px",
-            backgroundColor: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
-          }}
-          title="Search Coordinates"
+          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
+          title="Search"
+          variant="outline"
         >
-          <FiSearch size={18} />
-        </button>
+          <Search size={16} className="text-white" />
+        </Button>
       </div>
 
-      {/* Search Input */}
+      {/* Search Input - Moved to top right */}
       {showSearch && (
-        <div
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            left: "20px",
-            zIndex: 1000,
-            backgroundColor: "white",
-            padding: "10px",
-            borderRadius: "4px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
-            width: "300px"
-          }}
-        >
-          <div style={{ display: "flex", marginBottom: "8px" }}>
-            <button
+        <div className="absolute top-16 right-5 z-[1001] bg-neutral-900/80 backdrop-blur-sm p-3 rounded-md border border-neutral-800 w-80">
+          <div className="flex mb-2">
+            <Button
               onClick={() => setSearchMode('location')}
-              style={{
-                flex: 1,
-                padding: "6px",
-                backgroundColor: searchMode === 'location' ? "#4CAF50" : "#f1f1f1",
-                color: searchMode === 'location' ? "white" : "black",
-                border: "none",
-                borderRadius: "4px 0 0 4px",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "4px"
-              }}
+              className={cn(
+                "flex-1 gap-1 rounded-r-none",
+                searchMode === 'location'
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-neutral-800 hover:bg-neutral-700 text-white"
+              )}
+              size="sm"
             >
-              <FiMapPin size={14} /> Location
-            </button>
-            <button
+              <MapPin size={14} /> Location
+            </Button>
+            <Button
               onClick={() => setSearchMode('coordinates')}
-              style={{
-                flex: 1,
-                padding: "6px",
-                backgroundColor: searchMode === 'coordinates' ? "#4CAF50" : "#f1f1f1",
-                color: searchMode === 'coordinates' ? "white" : "black",
-                border: "none",
-                borderRadius: "0 4px 4px 0",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "4px"
-              }}
+              className={cn(
+                "flex-1 gap-1 rounded-l-none",
+                searchMode === 'coordinates'
+                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                  : "bg-neutral-800 hover:bg-neutral-700 text-white"
+              )}
+              size="sm"
             >
-              <FiNavigation size={14} /> Coordinates
-            </button>
+              <Navigation size={14} /> Coordinates
+            </Button>
           </div>
 
-          <form onSubmit={handleSearch} style={{ display: "flex" }}>
-            <input
+          <form onSubmit={handleSearch} className="flex">
+            <Input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={searchMode === 'coordinates'
                 ? "Enter coordinates (lon, lat)"
                 : "Search for a location..."}
-              style={{
-                flex: 1,
-                padding: "8px 12px",
-                borderRadius: "4px 0 0 4px",
-                border: "1px solid #ccc"
-              }}
+              className="rounded-r-none bg-neutral-800 text-white border-neutral-700 focus:border-primary"
             />
-            <button
+            <Button
               type="submit"
               disabled={isSearching}
-              style={{
-                padding: "8px 12px",
-                backgroundColor: isSearching ? "#cccccc" : "#4CAF50",
-                color: "white",
-                border: "none",
-                borderRadius: "0 4px 4px 0",
-                cursor: isSearching ? "default" : "pointer"
-              }}
+              className={cn(
+                "rounded-l-none",
+                isSearching ? "opacity-50" : ""
+              )}
             >
               {isSearching ? "..." : "Go"}
-            </button>
+            </Button>
           </form>
 
           {/* Search Results */}
           {searchResults.length > 0 && (
-            <div
-              style={{
-                marginTop: "10px",
-                maxHeight: "200px",
-                overflowY: "auto",
-                border: "1px solid #eee",
-                borderRadius: "4px"
-              }}
-            >
+            <div className="mt-2 max-h-[200px] overflow-y-auto custom-scrollbar border border-neutral-700 rounded-md">
               {searchResults.map((result, index) => (
                 <div
                   key={index}
                   onClick={() => handleResultClick(result)}
-                  style={{
-                    padding: "8px 12px",
-                    borderBottom: index < searchResults.length - 1 ? "1px solid #eee" : "none",
-                    cursor: "pointer",
-                    backgroundColor: "white",
-                    hoverBackgroundColor: "#f9f9f9"
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#f5f5f5")}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "white")}
+                  className={cn(
+                    "p-2 cursor-pointer hover:bg-neutral-700/70 bg-neutral-800/70",
+                    index < searchResults.length - 1 ? "border-b border-neutral-700" : ""
+                  )}
                 >
-                  <div style={{ fontWeight: "bold" }}>{result.display_name.split(',')[0]}</div>
-                  <div style={{ fontSize: "12px", color: "#666" }}>
+                  <div className="font-medium text-primary-foreground">{result.display_name.split(',')[0]}</div>
+                  <div className="text-xs text-neutral-400 truncate">
                     {result.display_name}
                   </div>
                 </div>
