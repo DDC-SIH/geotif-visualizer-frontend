@@ -306,7 +306,10 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                         <DotsVerticalIcon className="h-5 w-5" />
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
-                    <span className="text-sm font-medium">{date && date.toISOString().split("T")[0] + "/" + Layers.processingLevel + "/" + (Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB")}</span>
+                    <span className="text-xs font-medium">
+                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layers.processingLevel} / ${Layers.productCode} / ${Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB"
+                            }`}
+                    </span>
 
                     {/* Delete button */}
                     <div className="ml-auto mr-2" onClick={(e) => {

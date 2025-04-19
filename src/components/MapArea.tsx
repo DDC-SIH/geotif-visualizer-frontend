@@ -4,17 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import { Map, View } from "ol";
 import TileLayer from "ol/layer/Tile";
 import "ol/ol.css";
-import {
-  defaultMapConfig,
-} from "../constants/consts";
+import { defaultMapConfig } from "../constants/consts";
 import { useGeoData } from "../contexts/GeoDataProvider";
 import { fromLonLat, toLonLat, transformExtent } from "ol/proj";
 import { addDragBoxInteraction } from "@/lib/dragBoxInteraction";
-import { Search, ZoomIn, ZoomOut, Maximize, MapPin, Navigation, Eye, EyeOff } from "lucide-react";
 import { buffer } from 'ol/extent';
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { cn } from "@/lib/utils";
+
+// Import our new components
+import { CoordinateDisplay } from "./MapTools/CoordinateDisplay";
+import { MapControls } from "./MapTools/MapControls";
+import { SearchPanel } from "./MapTools/SearchPanel";
 
 // Declare the map on the window for global access
 declare global {
@@ -24,10 +23,7 @@ declare global {
 }
 
 function MapComponent() {
-  const {
-    layersRef,
-    setBBOX,
-  } = useGeoData();
+  const { layersRef, setBBOX } = useGeoData();
   const [isModifierKeyPressed, setIsModifierKeyPressed] = useState(false);
   const [mousePosition, setMousePosition] = useState<[number, number] | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -302,146 +298,33 @@ function MapComponent() {
       id="map"
       ref={mapRef}
     >
-      {/* Coordinate Display with Toggle */}
-      {mousePosition && showCoords && (
-        <div
-          className="absolute top-4 right-4 bg-neutral-900/80 backdrop-blur-sm p-2 rounded-md text-sm font-mono text-primary-foreground z-[1001] flex items-center gap-2 border border-neutral-800"
-        >
-          <span>Lon: {mousePosition[0]}, Lat: {mousePosition[1]}</span>
-          <Button
-            
-            size="icon"
-            className="h-6 w-6 p-1 text-neutral-400 hover:text-white"
-            onClick={() => setShowCoords(false)}
-          >
-            <EyeOff size={14} />
-          </Button>
-        </div>
-      )}
+      {/* Coordinate Display Component */}
+      <CoordinateDisplay
+        mousePosition={mousePosition}
+        showCoords={showCoords}
+        setShowCoords={setShowCoords}
+      />
 
-      {!showCoords && (
-        <Button
-          className="absolute top-4 right-4 z-[1001] bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
-          size="sm"
-          
-          onClick={() => setShowCoords(true)}
-        >
-          <Eye size={14} className="mr-1" /> Show Coordinates
-        </Button>
-      )}
+      {/* Map Controls Component */}
+      <MapControls
+        onZoomIn={handleZoomIn}
+        onZoomOut={handleZoomOut}
+        onFitView={handleFitView}
+        onToggleSearch={() => setShowSearch(!showSearch)}
+      />
 
-      {/* Map Control Buttons */}
-      <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-[1000]">
-        <Button
-          onClick={handleZoomIn}
-          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
-          title="Zoom In"
-          variant="outline"
-        >
-          <ZoomIn size={18} className="text-white" />
-        </Button>
-
-        <Button
-          onClick={handleZoomOut}
-          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
-          title="Zoom Out"
-          variant="outline"
-        >
-          <ZoomOut size={18} className="text-white" />
-        </Button>
-
-        <Button
-          onClick={handleFitView}
-          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
-          title="Fit to Default View"
-          variant="outline"
-        >
-          <Maximize size={16} className="text-white" />
-        </Button>
-
-        <Button
-          onClick={() => setShowSearch(!showSearch)}
-          className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
-          title="Search"
-          variant="outline"
-        >
-          <Search size={16} className="text-white" />
-        </Button>
-      </div>
-
-      {/* Search Input - Moved to top right */}
+      {/* Search Panel Component */}
       {showSearch && (
-        <div className="absolute top-16 right-5 z-[1001] bg-neutral-900/80 backdrop-blur-sm p-3 rounded-md border border-neutral-800 w-80">
-          <div className="flex mb-2">
-            <Button
-              onClick={() => setSearchMode('location')}
-              className={cn(
-                "flex-1 gap-1 rounded-r-none",
-                searchMode === 'location'
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-neutral-800 hover:bg-neutral-700 text-white"
-              )}
-              size="sm"
-            >
-              <MapPin size={14} /> Location
-            </Button>
-            <Button
-              onClick={() => setSearchMode('coordinates')}
-              className={cn(
-                "flex-1 gap-1 rounded-l-none",
-                searchMode === 'coordinates'
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-neutral-800 hover:bg-neutral-700 text-white"
-              )}
-              size="sm"
-            >
-              <Navigation size={14} /> Coordinates
-            </Button>
-          </div>
-
-          <form onSubmit={handleSearch} className="flex">
-            <Input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={searchMode === 'coordinates'
-                ? "Enter coordinates (lon, lat)"
-                : "Search for a location..."}
-              className="rounded-r-none bg-neutral-800 text-white border-neutral-700 focus:border-primary"
-            />
-            <Button
-              type="submit"
-              disabled={isSearching}
-              className={cn(
-                "rounded-l-none",
-                isSearching ? "opacity-50" : ""
-              )}
-            >
-              {isSearching ? "..." : "Go"}
-            </Button>
-          </form>
-
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="mt-2 max-h-[200px] overflow-y-auto custom-scrollbar border border-neutral-700 rounded-md">
-              {searchResults.map((result, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleResultClick(result)}
-                  className={cn(
-                    "p-2 cursor-pointer hover:bg-neutral-700/70 bg-neutral-800/70",
-                    index < searchResults.length - 1 ? "border-b border-neutral-700" : ""
-                  )}
-                >
-                  <div className="font-medium text-primary-foreground">{result.display_name.split(',')[0]}</div>
-                  <div className="text-xs text-neutral-400 truncate">
-                    {result.display_name}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <SearchPanel
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchMode={searchMode}
+          setSearchMode={setSearchMode}
+          isSearching={isSearching}
+          searchResults={searchResults}
+          onSearch={handleSearch}
+          onResultClick={handleResultClick}
+        />
       )}
     </div>
   );

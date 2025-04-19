@@ -10,16 +10,14 @@ import {
   SelectValue,
 } from "@/components/ui/singleselector";
 import { Button } from "@/components/ui/button";
-import { Card } from "antd";
-import { CardContent } from "../ui/card";
+import { Card, CardContent } from "../ui/card";
 import { fetchLatestAvailableBandsWithData } from "@/apis/req";
 import { BandData } from "@/types/cog";
-// import { CogType } from "@/types/cog";
 import { Layers } from "@/constants/consts";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
-
 import { useGeoData } from "@/contexts/GeoDataProvider";
 import { TZDate } from "react-day-picker";
+import { LayersIcon } from "lucide-react";
 
 interface SingleBandTabProps {
   product: string;
@@ -37,27 +35,31 @@ export function SingleBandTab({
 }: SingleBandTabProps) {
   const [band, setBand] = useState<BandData | null>(null);
   const [allBands, setAllBands] = useState<BandData[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { addLayer } = useGeoData();
-  
+
   useEffect(() => {
-    fetchLatestAvailableBandsWithData(satelliteId, processingLevel, product).then((data) => {
-      console.log(data);
-      setAllBands(data.bandData);
-      setBand(data.bandData[0]);
-    })
-    // fetchLatestAvailableBands(satelliteId, processingLevel, product).then((data) => {
-    //   setAllBands(data.bands);
-    //   setBand(data.bands[0]);
-    // })
-
-  }, [processingLevel, product]);
-
-
-  // Reset band when type changes
+    if (satelliteId && processingLevel && product) {
+      setIsLoading(true);
+      fetchLatestAvailableBandsWithData(satelliteId, processingLevel, product)
+        .then((data) => {
+          setAllBands(data.bandData || []);
+          if (data.bandData && data.bandData.length > 0) {
+            setBand(data.bandData[0]);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching band data:", err);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [processingLevel, product, satelliteId]);
 
   const handleAdd = () => {
-
     if (!band) return;
+
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
       layerType: "Singleband",
@@ -79,38 +81,70 @@ export function SingleBandTab({
       productCode: band?.productCode,
       layer: "",
     };
+
     addLayer(layer);
     toggleOpen && toggleOpen();
-
-    // setOpen(false);
-
   };
 
   return (
-    <Card>
+    <Card className="bg-neutral-800 border-neutral-700">
       <CardContent className="space-y-4 pt-6">
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Band Selector</label>
-          <Select value={band?.band} onValueChange={(value) => {
-            const selectedBand = allBands.find((band) => band.band === value);
-            setBand(selectedBand || null);
-          }}>
-            <SelectTrigger className="bg-white">
-              <SelectValue placeholder="Select band" />
-            </SelectTrigger>
-            <SelectContent>
-              {allBands.map((band, index) => (
-                <SelectItem key={index} value={band.band}>
-                  {band.band}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center p-4 text-neutral-400">
+            <div className="animate-spin mr-2 h-4 w-4 border-t-2 border-white border-r-2 border-b-2 border-neutral-600 rounded-full"></div>
+            Loading bands...
+          </div>
+        ) : (
+          <>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-primary-foreground flex items-center gap-1">
+                <LayersIcon className="h-4 w-4" /> Band Selection
+              </label>
+              <Select
+                value={band?.band || ''}
+                onValueChange={(value) => {
+                  const selectedBand = allBands.find((b) => b.band === value);
+                  setBand(selectedBand || null);
+                }}
+                disabled={allBands.length === 0}
+              >
+                <SelectTrigger className="bg-neutral-900 border-neutral-700 text-primary-foreground">
+                  <SelectValue placeholder="Select a band" />
+                </SelectTrigger>
+                <SelectContent
+                  className="bg-neutral-900 border-neutral-700 text-primary-foreground max-h-[35vh] overflow-y-auto"
+                  position="popper"
+                  align="start"
+                  sideOffset={5}
+                >
+                  {allBands.length > 0 ? allBands.map((band, index) => (
+                    <SelectItem key={index} value={band.band} className="py-2.5">
+                      {band.band}
+                    </SelectItem>
+                  )) : (
+                    <SelectItem value="none" disabled>No bands available</SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
 
-        <Button className="w-full mt-6" onClick={handleAdd} disabled={!band}>
-          Add Single Band
-        </Button>
+            {band && (
+              <div className="p-2 bg-neutral-900/50 rounded-md text-xs text-neutral-400 mt-2">
+                <p>Band ID: {band.bands.bandId}</p>
+                <p className="mt-1">Range: {band.bands.min.toFixed(2)} - {band.bands.max.toFixed(2)}</p>
+                <p className="mt-1">Date: {new Date(band.aquisition_datetime).toLocaleDateString()}</p>
+              </div>
+            )}
+
+            <Button
+              className="w-full mt-4 bg-primary hover:bg-primary/90"
+              onClick={handleAdd}
+              disabled={!band}
+            >
+              Add Single Band
+            </Button>
+          </>
+        )}
       </CardContent>
     </Card>
   );
