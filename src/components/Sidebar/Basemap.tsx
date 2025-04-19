@@ -12,13 +12,13 @@ export default function Basemap() {
   const {
     updateBaseMap,
     selectedBasemap,
-    setShapeActive,
-    shapeActive,
     layerTransparency,
-    updateBaseMapOpacity
+    updateBaseMapOpacity,
+    toggleOutlineLayer,
   } = useGeoData();
 
   const [searchText, setSearchText] = useState("");
+  const [outLineVisible, setOutlineVisible] = useState(false);
 
   return (
     <div className="rounded-md bg-neutral-900/60 backdrop-blur-sm">
@@ -82,8 +82,14 @@ export default function Basemap() {
             Indian States
           </div>
           <Switch
-            checked={shapeActive}
-            onCheckedChange={() => setShapeActive((prev) => !prev)}
+            checked={outLineVisible}
+            onCheckedChange={() => {
+              setOutlineVisible((prev) => {
+                const newState = !prev;
+                toggleOutlineLayer(newState);
+                return newState;
+              });
+            }}
             className="data-[state=checked]:bg-primary"
           />
         </div>

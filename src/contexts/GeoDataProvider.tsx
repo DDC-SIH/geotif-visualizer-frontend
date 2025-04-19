@@ -12,8 +12,9 @@ import {
   Layers,
 } from "../constants/consts.ts";
 import TileLayer from "ol/layer/Tile";
-import { ImageTile, TileImage, TileWMS } from "ol/source";
+import { ImageTile, ImageWMS, TileImage, TileWMS } from "ol/source";
 import { colorMap } from "@/types/colormap.ts";
+import ImageLayer from "ol/layer/Image";
 
 interface GeoDataContextType {
   geoData: GeoJSON | GeoJSONError | null;
@@ -49,6 +50,7 @@ interface GeoDataContextType {
   updateColorMap: (index: number, colorMap: colorMap | undefined) => void;
   updateLayerFunc: (index: number, updatedLayerProps: Partial<Layers>) => void;
   updateBaseMapOpacity: (opacity: number) => void;
+  toggleOutlineLayer: (active: boolean) => void;
 }
 
 const GeoDataContext = createContext<GeoDataContextType | undefined>(undefined);
@@ -129,12 +131,32 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
   );
 
   const outlineLayer = useRef(
-    
+    new ImageLayer({
+      visible: false,
+      zIndex: 1001,
+      source: new ImageWMS({
+        url: "https://mosdac.gov.in/geoserver_2/worldview/wms",
+        params: {
+          LAYERS: "worldview:INDIA_STATE250NATGIS2005",
+          TRANSPARENT: true,
+          FORMAT: "image/png",
+          OPACITY: 1,
+          CRS: "EPSG:4326",
+        },
+      }),
+    })
   )
 
   useEffect(() => {
     window.map?.addLayer(basemapLayer.current);
+    window.map?.addLayer(outlineLayer.current);
   }, []);
+
+  const toggleOutlineLayer = (active: boolean) => {
+    if (outlineLayer.current) {
+      outlineLayer.current.setVisible(active);
+    }
+  }
 
   const updateBaseMap = (selectedBasemap: basemap) => {
     basemapLayer.current.setOpacity(layerTransparency.baseMapLayer);
@@ -453,7 +475,8 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         reorderLayers,
         updateColorMap,
         updateLayerFunc,
-        updateBaseMapOpacity
+        updateBaseMapOpacity,
+        toggleOutlineLayer
       }}
     >
       {children}
