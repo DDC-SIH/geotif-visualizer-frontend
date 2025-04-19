@@ -1,6 +1,7 @@
 import { CogItemResponse, LatestBandsResp } from "@/types/cog";
 // import { format } from "date-fns";
 import { Layers } from "@/constants/consts"
+import { th } from "date-fns/locale";
 // import Layers 
 const BACKEND_API_URL = "http://74.226.242.56:7000"
 
@@ -91,7 +92,6 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
 }
 
 export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemResponse | null> => {
-
     const url = new URL(BACKEND_API_URL);
     url.pathname = `api/metadata/${Layers.satID}/cog/show`;
     url.searchParams.append("processingLevel", Layers.processingLevel as string);
@@ -105,8 +105,7 @@ export const fetchBands = async (Layers: Partial<Layers>): Promise<CogItemRespon
         return data;
     }
     if (!res.ok) {
-        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return null;
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
     return null;
     // return undefined;
@@ -119,6 +118,10 @@ export const fetchSatelites = async (): Promise<SatellitesResponse> => {
     if (res.ok) {
         const data = await res.json();
         return data;
+    }
+    if (!res.ok) {
+        console.error(`Failed to fetch satellites: ${res.status} - ${res.statusText}`);
+        throw new Error(`Failed to fetch satellites: ${res.status} - ${res.statusText}`);
     }
     return { message: "", satellites: [] };
 }
@@ -133,7 +136,7 @@ export const fetchProcessingLevels = async (satelliteId: string): Promise<Proces
     }
     if (!res.ok) {
         console.error(`Failed to fetch processing levels: ${res.status} - ${res.statusText}`);
-        return { processingLevels: [] };
+        throw new Error(`Failed to fetch processing levels: ${res.status} - ${res.statusText}`);
     }
     return { processingLevels: [] };
 }
@@ -150,7 +153,7 @@ export const fetchAvailableBandNames = async (satID: string, processingLevel: st
     }
     if (!res.ok) {
         console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return { bands: [] };
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
     return { bands: [] };
 }
@@ -165,7 +168,7 @@ export const fetchAvailableProductCodes = async (satID: string, processingLevel:
     }
     if (!res.ok) {
         console.error(`Failed to fetch product codes: ${res.status} - ${res.statusText}`);
-        return { productCodes: [] };
+        throw new Error(`Failed to fetch product codes: ${res.status} - ${res.statusText}`);
     }
     return { productCodes: [] };
 }
@@ -183,7 +186,7 @@ export const fetchLatestAvailableBands = async (satID: string, processingLevel: 
     }
     if (!res.ok) {
         console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return { bands: [] };
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
     return { bands: [] };
 };
@@ -201,7 +204,7 @@ export const fetchLatestAvailableBandsWithData = async (satID: string, processin
     }
     if (!res.ok) {
         console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return { bandData: [] };
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
     return { bandData: [] };
 };
@@ -219,19 +222,7 @@ export const fetchAvailableBandsWithDateTime = async (satID: string, processingL
     }
     if (!res.ok) {
         console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return { bandData: [] };
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
     return { bandData: [] };
 }
-
-// export const fetchBandData = async (satID: string, processingLevel: string, band: string): Promise<CogType> => {
-//     const url = new URL(BACKEND_API_URL);
-//     url.pathname = `/api/metadata/${satID}/cog/show`;
-//     url.searchParams.append("band", band);
-//     const res = await fetch(url.toString());
-//     if (res.ok) {
-//         const data = await res.json();
-//         return data;
-//     }
-//     return {} as CogType;
-// }
