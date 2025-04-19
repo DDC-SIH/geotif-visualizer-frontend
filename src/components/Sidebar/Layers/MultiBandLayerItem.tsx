@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
 import { useGeoData } from "../../../contexts/GeoDataProvider";
 import { Layers, } from "@/constants/consts";
-import { availableColorMaps } from "@/constants/colormaps";
 import { Slider } from "../../ui/slider";
 import { DualRangeSlider } from "../../ui/dual-range-slider";
 import {
-    Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
@@ -35,7 +33,6 @@ import { cn } from "@/lib/utils";
 import ListItem from "../list-item";
 import { Calendar as CalendarComponent } from "../../ui/calendar";
 import { fetchAvailableTimes, fetchAvailableDates, fetchAllBands } from "@/apis/req";
-import { colorMap } from "@/types/colormap";
 import { TZDate } from "react-day-picker";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
 import { CogItem } from "@/types/cog";
@@ -47,7 +44,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
     onDragOver: (e: React.DragEvent) => void,
     onDrop: (e: React.DragEvent, index: number) => void
 }) {
-    const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateColorMap, updateLayerFunc } = useGeoData();
+    const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateLayerFunc } = useGeoData();
     const [minMaxError, setMinMaxError] = useState(
         Layers.bandNames.map(() => ({ minError: "", maxError: "" }))
     );
@@ -57,8 +54,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
             max: band.max,
         }))
     );
-    const [open, setOpen] = useState(false);
-    const [colorMapValue, setColorMapValue] = useState<string>(Layers.colormap || "");
+
     // Date and time state
     const [date, setDate] = useState<Date | undefined>(
         Layers.date
@@ -71,9 +67,9 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
     const [allBands, setAllBands] = useState<CogItem>();
     const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
     const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
-
+    const [timeChanged, setTimeChanged] = useState(false);
     useEffect(() => {
-        console.log("LayerItem mounted");
+
         // Fetch available dates from the API
         fetchAvailableDates(Layers)
             .then((dates) => {
@@ -102,8 +98,8 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                     console.log({ times })
                     const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
                     console.log("Available times:", convertedTimes);
-                    // // convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) :
-                    setTime(convertedTimes[0]);
+                    convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
+                    setTimeChanged((prev) => !prev);
                     setAllTimes(convertedTimes);
                 }
             })
@@ -120,6 +116,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
 
 
     useEffect(() => {
+        console.log("Time changed:", time);
         if (date && time) {
             fetchAllBands(date, time, Layers)
                 .then((data) => {
@@ -133,7 +130,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                     console.error("Error fetching all bands:", error);
                 });
         }
-    }, [time])
+    }, [time, timeChanged])
 
 
     useEffect(() => {
@@ -156,9 +153,18 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                     return layer;
                 });
             });
+            updateLayerFunc(layerIndex, {
+                url: "",
+                minMax: Layers.minMax.map(() => ({
+                    min: 0,
+                    max: 0,
+                    minLim: 0,
+                    maxLim: 0,
+                })),
+            });
             return;
         }
-
+        console.log("All bands Called", allBands);
         // Instead of replacing band information, only update the URL and time-related properties
         // Create a copy of the current minMax values to update
         const newMinMax = [...Layers.minMax];
@@ -176,9 +182,8 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
             }
         });
 
-        console.log("Bad Date", new Date(allBands?.aquisition_datetime));
         const updatedLayerProp = {
-            date: new Date(allBands?.aquisition_datetime),
+            date: new TZDate(allBands?.aquisition_datetime, "UTC"),
             time: convertFromTimestamp(allBands?.aquisition_datetime),
             url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
             minMax: newMinMax,
@@ -212,16 +217,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
             min: band.min,
             max: band.max,
         })));
-
-        // Update colormap state
-        setColorMapValue(Layers.colormap || "");
-
-        // Update date and time state
-        if (Layers.date) {
-            setDate(new TZDate(Layers.date, "UTC"));
-        }
-        setTime(Layers.time || "11:30");
-    }, [Layers.minMax, Layers.colormap, Layers.date, Layers.time]);
+    }, [Layers.minMax]);
 
     // Handle min/max changes for a specific band
     const handleMinMaxChange = (index: number, values: number[]) => {

@@ -85,8 +85,8 @@ export const fetchAllBands = async (date: Date, time: string, Layers: Layers): P
         return data;
     }
     if (!res.ok) {
-        console.error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
-        return undefined;
+        console.log(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
+        throw new Error(`Failed to fetch bands: ${res.status} - ${res.statusText}`);
     }
 }
 

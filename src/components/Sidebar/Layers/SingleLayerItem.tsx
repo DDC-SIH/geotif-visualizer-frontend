@@ -5,7 +5,6 @@ import { availableColorMaps } from "@/constants/colormaps";
 import { Slider } from "../../ui/slider";
 import { DualRangeSlider } from "../../ui/dual-range-slider";
 import {
-    Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
