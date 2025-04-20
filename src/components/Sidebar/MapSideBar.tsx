@@ -23,7 +23,7 @@ function MapSideBar() {
 
   return (
     
-    <div className="fixed left-0 top-0 flex h-full pointer-events-auto z-[2] bg-neutral-900 ">
+    <div className="fixed left-0 top-0 flex h-full pointer-events-auto z-[10] bg-neutral-900 ">
       {/* Icons Bar */}
       <div className=" flex flex-col justify-between  z-[2]">
         <div className="flex flex-col ">

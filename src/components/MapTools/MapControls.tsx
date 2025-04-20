@@ -19,7 +19,7 @@ export function MapControls({
   setShowCoords,
 }: MapControlsProps) {
   return (
-    <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-[1000]">
+    <div className="absolute bottom-5 right-5 flex flex-col gap-2 z-[5]">
       <Button
         onClick={() => setShowCoords(!showCoords)}
         className="w-10 h-10 p-0 bg-neutral-900/80 backdrop-blur-sm border border-neutral-800"
