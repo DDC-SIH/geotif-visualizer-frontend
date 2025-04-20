@@ -155,7 +155,7 @@ export function MultiBandTab({
                   <SelectTrigger className="bg-neutral-900 border-neutral-700 text-primary-foreground">
                     <SelectValue placeholder="Select band" />
                   </SelectTrigger>
-                  <SelectContent 
+                  <SelectContent
                     className="bg-neutral-900 border-neutral-700 text-primary-foreground max-h-[35vh] overflow-y-auto"
                     position="popper"
                     align="start"
@@ -168,12 +168,7 @@ export function MultiBandTab({
                     ))}
                   </SelectContent>
                 </Select>
-                {redBand.name && (
-                  <div className="bg-neutral-900/50 rounded-md p-1.5 text-xs text-neutral-400 mt-1">
-                    <p className="truncate" title={redBand.name}>{redBand.name}</p>
-                    <p className="mt-1">ID: {redBand.id}</p>
-                  </div>
-                )}
+
               </div>
 
               {/* Green Channel Column */}
@@ -192,7 +187,7 @@ export function MultiBandTab({
                   <SelectTrigger className="bg-neutral-900 border-neutral-700 text-primary-foreground">
                     <SelectValue placeholder="Select band" />
                   </SelectTrigger>
-                  <SelectContent 
+                  <SelectContent
                     className="bg-neutral-900 border-neutral-700 text-primary-foreground max-h-[35vh] overflow-y-auto"
                     position="popper"
                     align="start"
@@ -205,12 +200,7 @@ export function MultiBandTab({
                     ))}
                   </SelectContent>
                 </Select>
-                {greenBand.name && (
-                  <div className="bg-neutral-900/50 rounded-md p-1.5 text-xs text-neutral-400 mt-1">
-                    <p className="truncate" title={greenBand.name}>{greenBand.name}</p>
-                    <p className="mt-1">ID: {greenBand.id}</p>
-                  </div>
-                )}
+
               </div>
 
               {/* Blue Channel Column */}
@@ -229,7 +219,7 @@ export function MultiBandTab({
                   <SelectTrigger className="bg-neutral-900 border-neutral-700 text-primary-foreground">
                     <SelectValue placeholder="Select band" />
                   </SelectTrigger>
-                  <SelectContent 
+                  <SelectContent
                     className="bg-neutral-900 border-neutral-700 text-primary-foreground max-h-[35vh] overflow-y-auto"
                     position="popper"
                     align="start"
@@ -242,37 +232,17 @@ export function MultiBandTab({
                     ))}
                   </SelectContent>
                 </Select>
-                {blueBand.name && (
-                  <div className="bg-neutral-900/50 rounded-md p-1.5 text-xs text-neutral-400 mt-1">
-                    <p className="truncate" title={blueBand.name}>{blueBand.name}</p>
-                    <p className="mt-1">ID: {blueBand.id}</p>
-                  </div>
-                )}
+
               </div>
             </div>
 
-            {areChannelsSelected && (
-              <div className="p-3 bg-neutral-900/50 rounded-md text-xs text-neutral-400 mt-4">
-                <p className="font-medium text-center mb-2">RGB Composite Preview</p>
-                <div className="grid grid-cols-3 gap-2 mt-1">
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-red-500 mr-1"></div>
-                    <span className="truncate">{redBand.name}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-green-500 mr-1"></div>
-                    <span className="truncate">{greenBand.name}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <div className="w-3 h-3 rounded-full bg-blue-500 mr-1"></div>
-                    <span className="truncate">{blueBand.name}</span>
-                  </div>
-                </div>
+            {allBands && (
+              <div className="p-2 bg-neutral-900/50 rounded-md text-xs text-neutral-400 ">
+                <p className="">Date: {new Date(allBands.aquisition_datetime).toLocaleDateString()}</p>
               </div>
             )}
-
             <Button
-              className="w-full mt-4 bg-primary hover:bg-primary/90"
+              className="w-full  bg-primary hover:bg-primary/90"
               onClick={handleAdd}
               disabled={!redBand.name || !greenBand.name || !blueBand.name}
             >

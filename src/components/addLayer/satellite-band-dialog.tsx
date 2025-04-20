@@ -128,7 +128,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] max-w-[90vw] bg-neutral-900/90 backdrop-blur-md border-neutral-700 text-primary-foreground max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[550px] max-w-[90vw] bg-neutral-900/90 backdrop-blur-md border-neutral-700 text-primary-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-center flex items-center justify-center gap-2">
             <Satellite className="h-5 w-5" />

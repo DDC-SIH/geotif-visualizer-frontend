@@ -129,9 +129,7 @@ export function SingleBandTab({
             </div>
 
             {band && (
-              <div className="p-2 bg-neutral-900/50 rounded-md text-xs text-neutral-400 mt-2">
-                <p>Band ID: {band.bands.bandId}</p>
-                <p className="mt-1">Range: {band.bands.min.toFixed(2)} - {band.bands.max.toFixed(2)}</p>
+              <div className="p-2 bg-neutral-900/50 rounded-md text-xs text-neutral-400 ">
                 <p className="mt-1">Date: {new Date(band.aquisition_datetime).toLocaleDateString()}</p>
               </div>
             )}
