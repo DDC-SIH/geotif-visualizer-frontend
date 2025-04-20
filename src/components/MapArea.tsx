@@ -307,6 +307,8 @@ function MapComponent() {
 
       {/* Map Controls Component */}
       <MapControls
+        showCoords={showCoords}
+        setShowCoords={setShowCoords}
         onZoomIn={handleZoomIn}
         onZoomOut={handleZoomOut}
         onFitView={handleFitView}

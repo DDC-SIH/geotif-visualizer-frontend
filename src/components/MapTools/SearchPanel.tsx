@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { MapPin, Navigation } from "lucide-react";
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 interface SearchResult {
   display_name: string;
@@ -32,8 +32,22 @@ export function SearchPanel({
   onSearch,
   onResultClick
 }: SearchPanelProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  // Animate entrance on component mount
+  useEffect(() => {
+    // Small delay to ensure the component is rendered before animating
+    const timer = setTimeout(() => setIsVisible(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
-    <div className="absolute top-16 right-5 z-[1001] bg-neutral-900/80 backdrop-blur-sm p-3 rounded-md border border-neutral-800 w-80">
+    <div
+      className={cn(
+        "fixed bottom-5 z-[1001] bg-neutral-900/80 backdrop-blur-sm p-3 rounded-md border border-neutral-800 w-80 transition-all duration-300 ease-in-out",
+        isVisible ? "right-20 opacity-100" : "right-[-320px] opacity-0"
+      )}
+    >
       <div className="flex mb-2">
         <Button
           onClick={() => setSearchMode('location')}
