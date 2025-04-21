@@ -99,8 +99,12 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
             const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
             if (matchingBand) {
                 newMinMax[index] = {
-                    min: matchingBand.bands.minimum,
-                    max: matchingBand.bands.maximum,
+                    min: (matchingBand.bands.minimum <= newMinMax[index].min && newMinMax[index].min <= matchingBand.bands.maximum)
+                        ? newMinMax[index].min
+                        : matchingBand.bands.minimum,
+                    max: (matchingBand.bands.minimum <= newMinMax[index].max && newMinMax[index].max <= matchingBand.bands.maximum)
+                        ? newMinMax[index].max
+                        : matchingBand.bands.maximum,
                     minLim: matchingBand.bands.minimum,
                     maxLim: matchingBand.bands.maximum,
                 };
