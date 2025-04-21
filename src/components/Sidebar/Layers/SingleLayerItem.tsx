@@ -158,9 +158,10 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                     console.log({ times })
                     const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
                     console.log("Available times:", convertedTimes);
-                    // convertedTimes.find((time) => time === Layer.time) ? setTime(Layer.time) : setTime(convertedTimes[0]);
+                    convertedTimes.find((time) => time === Layer.time) ? setTime(Layer.time) : setTime(convertedTimes[0]);
                     // setTimeChange((prev) => !prev);
                     setAllTimes(convertedTimes);
+
                     fetchAvailableBandsWithDateTime(Layer.satID, Layer.processingLevel as string, date as Date, time)
                         .then((data) => {
                             if (data) {
