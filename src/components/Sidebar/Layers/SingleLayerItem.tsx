@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGeoData } from "../../../contexts/GeoDataProvider";
 import { Layers, } from "@/constants/consts";
 import { availableColorMaps } from "@/constants/colormaps";
@@ -40,7 +40,7 @@ import { TZDate } from "react-day-picker";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
 
 
-export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
+export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver, onDrop }: {
     Layers: Layers,
     index: number,
     onDragStart: (e: React.DragEvent, index: number) => void,
@@ -49,35 +49,34 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
 }) {
     const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateColorMap, updateLayerFunc } = useGeoData();
     const [minMaxError, setMinMaxError] = useState(
-        Layers.bandNames.map(() => ({ minError: "", maxError: "" }))
+        Layer.bandNames.map(() => ({ minError: "", maxError: "" }))
     );
     const [minMax, setMinMax] = useState(
-        Layers.minMax.map((band) => ({
+        Layer.minMax.map((band) => ({
             min: band.min,
             max: band.max,
+            minLim: band.minLim,
+            maxLim: band.maxLim,
         }))
     );
     const [open, setOpen] = useState(false);
-    const [colorMapValue, setColorMapValue] = useState<string>(Layers.colormap || "");
+    const [colorMapValue, setColorMapValue] = useState<string>(Layer.colormap || "");
     // Date and time state
-    console.log("LayerItem", Layers.date.toISOString())
-    const [date, setDate] = useState<Date | undefined>(
-        Layers.date
-    );
+    // console.log("LayerItem", Layer.date.toISOString())
+    const [date, setDate] = useState<Date | undefined>(Layer.date);
     const [dateOpen, setDateOpen] = useState(false);
 
-    const [time, setTime] = useState(Layers.time);
+    const [time, setTime] = useState(Layer.time);
     const [timeOpen, setTimeOpen] = useState(false);
     const [allTimes, setAllTimes] = useState<string[]>([]);
     const [allBands, setAllBands] = useState<BandData[]>();
-    const [selectedBand, setSelectedBand] = useState<string>(Layers.bandNames[0]);
+    const [selectedBand, setSelectedBand] = useState<string>(Layer.bandNames[0]);
     const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
-    const [timeChange, setTimeChange] = useState(false);
-
+    const firstLoad = useRef(true);
     useEffect(() => {
         console.log("LayerItem mounted");
         // Fetch available dates from the API
-        fetchAvailableDates(Layers)
+        fetchAvailableDates(Layer)
             .then((dates) => {
                 console.log("Available dates:", dates);
                 if (dates) {
@@ -91,82 +90,45 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
             .catch((error) => {
                 console.error("Error fetching available dates:", error);
             });
-    }, [dateOpen]);
+    }, []);
+    function updateChanges(allBands: BandData[]) {
+        console.log("Update changes called");
+        // console.log("Pending changes:", pendingChanges);
+        // if (!pendingChanges || !allBands) return;
 
-    useEffect(() => {
-        // Fetch available times from the API
-        fetchAvailableTimes(date as Date, Layers)
-            .then((times) => {
-                if (times) {
-                    console.log({ times })
-                    const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
-                    console.log("Available times:", convertedTimes);
-                    convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
-                    setTimeChange((prev) => !prev);
-                    setAllTimes(convertedTimes);
-                }
-            })
-            .catch((error) => {
-                console.error("Error fetching available times:", error);
-            });
+        // Create a copy of the current minMax values to update
+        const newMinMax = [...Layer.minMax];
 
-        // if set time in all time do nothing else select [0]
-        //set alltimes all times
-        //update layers
-        //update map
-    }, [date])
-
-
-    useEffect(() => {
-        if (date && time) {
-            fetchAvailableBandsWithDateTime(Layers.satID, Layers.processingLevel as string, date, time,)
-                .then((data) => {
-                    if (data) {
-                        console.log("Fetched all bands:", data);
-                        setAllBands(data.bandData);
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error fetching all bands:", error);
-                });
-        }
-    }, [time, timeChange])
-
-
-    useEffect(() => {
-        if (!allBands) return;
-
-        // // Instead of replacing band information, only update the URL and time-related properties
-        // // Create a copy of the current minMax values to update
-        const newMinMax = [...Layers.minMax];
-
-        // // For each existing band, update its min/max limits from the allBands data if available
-        Layers.bandIDs.forEach((bandId, index) => {
+        // For each existing band, update its min/max limits from the allBands data if available
+        Layer.bandIDs.forEach((bandId, index) => {
             const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
             if (matchingBand) {
                 newMinMax[index] = {
-                    min: (minMax[index].min >= matchingBand.bands.minimum && minMax[index].min <= matchingBand.bands.maximum)
-                        ? minMax[index].min
-                        : matchingBand.bands.minimum,
-                    max: (minMax[index].max <= matchingBand.bands.maximum && minMax[index].max >= matchingBand.bands.minimum)
-                        ? minMax[index].max
-                        : matchingBand.bands.maximum,
+                    min: matchingBand.bands.minimum,
+                    max:  matchingBand.bands.maximum,
                     minLim: matchingBand.bands.minimum,
                     maxLim: matchingBand.bands.maximum,
                 };
             }
         });
+        
 
-        const thisBand = allBands.find(band => band.band === selectedBand)
+        const thisBand = allBands.find(band => band.band === selectedBand);
         if (!thisBand) return;
+
         const updatedLayerProp = {
-            // date:  new TZDate(thisBand?.acquisition_date, "UTC"),
             date: new TZDate(thisBand?.aquisition_datetime as number, "UTC"),
             time: convertFromTimestamp(thisBand?.aquisition_datetime as number),
             url: `${thisBand?.filepath || ""}/${thisBand?.filename || ""}`,
             minMax: newMinMax,
-            // Don't update bandNames or bandIDs to preserve the current selection
-        }
+            bandNames: [thisBand?.band || ""],
+            bandIDs: [thisBand?.bands.bandId.toString() || ""],
+            processingLevel: thisBand?.processingLevel,
+            productCode: thisBand?.productCode,
+            satID: thisBand?.satelliteId,
+            layer: thisBand?.band,
+            // colormap: thisBand?.colormap,
+        };
 
         setLayers((prev) => {
             return (prev ?? []).map((layer, idx) => {
@@ -181,13 +143,80 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
         });
 
         updateLayerFunc(layerIndex, updatedLayerProp);
+    }
+    useEffect(() => {
+        if (firstLoad.current) {
+            console.log("First load, skipping effect");
+            firstLoad.current = false;
+            return;
+        }
 
-    }, [allBands]);
+        // Fetch available times from the API
+        fetchAvailableTimes(date as Date, Layer)
+            .then((times) => {
+                if (times) {
+                    console.log({ times })
+                    const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
+                    console.log("Available times:", convertedTimes);
+                    // convertedTimes.find((time) => time === Layer.time) ? setTime(Layer.time) : setTime(convertedTimes[0]);
+                    // setTimeChange((prev) => !prev);
+                    setAllTimes(convertedTimes);
+                    fetchAvailableBandsWithDateTime(Layer.satID, Layer.processingLevel as string, date as Date, time)
+                        .then((data) => {
+                            if (data) {
+                                console.log("Fetched all bands:", data);
+                                setAllBands(data.bandData);
+                                // setPendingChanges(true);
+                                updateChanges(data.bandData);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching all bands:", error);
+                        });
+
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching available times:", error);
+            });
+
+        // if set time in all time do nothing else select [0]
+        //set alltimes all times
+        //update layers
+        //update map
+    }, [date, time])
+
+
+    // useEffect(() => {
+    //     if (date && time) {
+    //         fetchAvailableBandsWithDateTime(Layer.satID, Layer.processingLevel as string, date, time,)
+    //             .then((data) => {
+    //                 if (data) {
+    //                     console.log("Fetched all bands:", data);
+    //                     setAllBands(data.bandData);
+    //                 }
+    //             })
+    //             .catch((error) => {
+    //                 console.error("Error fetching all bands:", error);
+    //             });
+    //     }
+    // }, [time, timeChange])
+
+
+    // useEffect(() => {
+    //     if (allBands) {
+    //         // const thisBand = allBands.find(band => band.band === selectedBand);
+    //         updateChanges();
+    //     }
+    // }, [allBands]);
+
+
+
 
 
 
     // Find the index of this layer in the context
-    const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
+    const layerIndex = allLayers?.findIndex((layer) => layer.id === Layer.id) ?? -1;
 
     // // Update local state when layer properties change
     // useEffect(() => {
@@ -214,7 +243,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
         const newMinMaxError = [...minMaxError];
 
         // Validate min value
-        if (min >= Layers.minMax[index].minLim && min <= max) {
+        if (min >= Layer.minMax[index].minLim && min <= max) {
             newMinMax[index].min = min;
             newMinMaxError[index].minError = "";
         } else {
@@ -222,7 +251,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
         }
 
         // Validate max value
-        if (max <= Layers.minMax[index].maxLim && max >= min) {
+        if (max <= Layer.minMax[index].maxLim && max >= min) {
             newMinMax[index].max = max;
             newMinMaxError[index].maxError = "";
         } else {
@@ -236,7 +265,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
     // Check if any min/max has changed
     const hasMinMaxChanged = () => {
         return minMax.some((band, idx) =>
-            band.min !== Layers.minMax[idx].min || band.max !== Layers.minMax[idx].max
+            band.min !== Layer.minMax[idx].min || band.max !== Layer.minMax[idx].max
         );
     };
 
@@ -288,7 +317,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
             onDrop={(e) => onDrop(e, index)}
             className=" "
         >
-            <AccordionItem value={Layers.id.toString()} className="rounded-t-lg flex flex-col border-none min-w-full">
+            <AccordionItem value={Layer.id.toString()} className="rounded-t-lg flex flex-col border-none min-w-full">
 
                 <AccordionTrigger>
                     <div className="cursor-grab active:cursor-grabbing flex items-center">
@@ -296,7 +325,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium">
-                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layers.processingLevel} / ${Layers.productCode} / ${Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB"
+                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layer.processingLevel} / ${Layer.productCode} / ${Layer.layerType === "Singleband" ? Layer.bandNames[0] : "RGB"
                             }`}
                     </span>
 
@@ -336,7 +365,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                 }
                                                 mode="single"
                                                 selected={date}
-                                                className="bg-neutral-800 text-white flex flex-col"
+                                                // className="bg-neutral-800 text-white m-0"
                                                 onSelect={handleDateChange}
                                             />
                                         </PopoverContent>
@@ -388,7 +417,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                         </div>
                     </div>
 
-                    {Layers.bandNames.map((bandName, idx) => (
+                    {Layer.bandNames.map((bandName, idx) => (
                         <div key={idx} className="mb-4">
                             <Select>
                                 <SelectTrigger
@@ -435,7 +464,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                     setLayers((prev) => {
                                                         if (!prev) return null;
                                                         return prev.map((layer) => {
-                                                            if (layer.id === Layers.id) {
+                                                            if (layer.id === Layer.id) {
                                                                 return {
                                                                     ...layer,
                                                                     url: `${band.filepath || ""}/${band.filename || ""}`,
@@ -493,9 +522,9 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                 <div className="relative mt-2">
                                     <DualRangeSlider
                                         value={[minMax[idx].min, minMax[idx].max]}
-                                        min={Layers.minMax[idx].minLim}
-                                        max={Layers.minMax[idx].maxLim}
-                                        step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
+                                        min={Layer.minMax[idx].minLim}
+                                        max={Layer.minMax[idx].maxLim}
+                                        step={(Layer.minMax[idx].maxLim - Layer.minMax[idx].minLim) / 100}
                                         minStepsBetweenThumbs={1}
                                         className="mt-2"
                                         onValueChange={(values) => handleMinMaxChange(idx, values)}
@@ -503,8 +532,8 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                 </div>
 
                                 <div className="flex justify-between text-background text-xs mt-1">
-                                    <span>{Layers.minMax[idx].minLim}</span>
-                                    <span>{Layers.minMax[idx].maxLim}</span>
+                                    <span>{Layer.minMax[idx].minLim}</span>
+                                    <span>{Layer.minMax[idx].maxLim}</span>
                                 </div>
                             </div>
                         </div>
@@ -518,18 +547,18 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                     setLayers((prev) => {
                                         if (!prev) return null;
                                         return prev.map((layer) => {
-                                            if (layer.id === Layers.id) {
+                                            if (layer.id === Layer.id) {
                                                 layer.minMax = minMax.map((band, idx) => ({
                                                     min: minMax[idx].min,
                                                     max: minMax[idx].max,
-                                                    minLim: Layers.minMax[idx].minLim,
-                                                    maxLim: Layers.minMax[idx].maxLim,
+                                                    minLim: Layer.minMax[idx].minLim,
+                                                    maxLim: Layer.minMax[idx].maxLim,
                                                 }));
                                             }
                                             return layer;
                                         });
                                     })
-                                    Layers.minMax.forEach((_, idx) => {
+                                    Layer.minMax.forEach((_, idx) => {
                                         updateMinMax(
                                             layerIndex,
                                             minMax[idx].min,
@@ -543,7 +572,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                             </Button>
                         )}
                     </div>
-                    {Layers.layerType === "Singleband" && (
+                    {Layer.layerType === "Singleband" && (
                         <div className="mb-4">
                             <div className="flex items-center justify-between">
 
@@ -559,7 +588,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                 setLayers((prev) => {
                                                     if (!prev) return null;
                                                     return prev.map((layer) => {
-                                                        if (layer.id === Layers.id) {
+                                                        if (layer.id === Layer.id) {
                                                             layer.colormap = undefined;
                                                         }
                                                         return layer;
@@ -597,7 +626,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                         setLayers((prev) => {
                                                             if (!prev) return null;
                                                             return prev.map((layer) => {
-                                                                if (layer.id === Layers.id) {
+                                                                if (layer.id === Layer.id) {
                                                                     layer.colormap = currentValue as colorMap;
                                                                 }
                                                                 return layer;
@@ -632,7 +661,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                         </p>
                         <Slider
                             title={"Transparency"}
-                            value={[Layers.transparency * 100]}
+                            value={[Layer.transparency * 100]}
                             step={10}
                             onValueChange={(val) => {
                                 const newOpacity = val[0] / 100;
@@ -640,7 +669,7 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                 setLayers((prev) => {
                                     if (!prev) return null;
                                     return prev.map((layer) => {
-                                        if (layer.id === Layers.id) {
+                                        if (layer.id === Layer.id) {
                                             layer.transparency = newOpacity;
                                         }
                                         return layer;
