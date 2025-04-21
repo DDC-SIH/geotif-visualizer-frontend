@@ -145,8 +145,12 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
             const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
             if (matchingBand) {
                 newMinMax[index] = {
-                    min: matchingBand.bands.minimum,
-                    max: matchingBand.bands.maximum,
+                    min: (minMax[index].min >= matchingBand.bands.minimum && minMax[index].min <= matchingBand.bands.maximum)
+                        ? minMax[index].min
+                        : matchingBand.bands.minimum,
+                    max: (minMax[index].max <= matchingBand.bands.maximum && minMax[index].max >= matchingBand.bands.minimum)
+                        ? minMax[index].max
+                        : matchingBand.bands.maximum,
                     minLim: matchingBand.bands.minimum,
                     maxLim: matchingBand.bands.maximum,
                 };
@@ -186,22 +190,22 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
     const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
 
     // // Update local state when layer properties change
-    useEffect(() => {
-        // Update minMax state
-        setMinMax(Layers.minMax.map((band) => ({
-            min: band.min,
-            max: band.max,
-        })));
+    // useEffect(() => {
+    //     // Update minMax state
+    //     setMinMax(Layers.minMax.map((band) => ({
+    //         min: band.min,
+    //         max: band.max,
+    //     })));
 
-        // Update colormap state
-        setColorMapValue(Layers.colormap || "");
+    //     // Update colormap state
+    //     setColorMapValue(Layers.colormap || "");
 
-        //   // Update date and time state
-        //   if (Layers.date) {
-        //     setDate(new TZDate(Layers.date, "UTC"));
-        //   }
-        // //   setTime(Layers.time || "11:30");
-    }, [Layers.minMax, Layers.colormap, Layers.date, Layers.time]);
+    //     //   // Update date and time state
+    //     //   if (Layers.date) {
+    //     //     setDate(new TZDate(Layers.date, "UTC"));
+    //     //   }
+    //     // //   setTime(Layers.time || "11:30");
+    // }, [Layers.minMax, Layers.colormap, Layers.date, Layers.time]);
 
     // Handle min/max changes for a specific band
     const handleMinMaxChange = (index: number, values: number[]) => {
@@ -292,9 +296,8 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium">
-                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layers.processingLevel} / ${Layers.productCode} / ${
-                            Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB"
-                        }`}
+                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layers.processingLevel} / ${Layers.productCode} / ${Layers.layerType === "Singleband" ? Layers.bandNames[0] : "RGB"
+                            }`}
                     </span>
 
                     {/* Delete button */}
@@ -433,22 +436,22 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                         if (!prev) return null;
                                                         return prev.map((layer) => {
                                                             if (layer.id === Layers.id) {
-                                                                layer.url = `${band.filepath || ""}/${band.filename || ""}`;
-                                                                // layer.date = new Date(band.aquisition_datetime);
-                                                                // layer.time = convertFromTimestamp(band.aquisition_datetime);
-                                                                layer.layer = band.band;
-                                                                layer.processingLevel = band.processingLevel;
-                                                                layer.productCode = band.productCode;
-                                                                layer.satID = band.satelliteId;
-                                                                layer.bandNames = [band.band];
-                                                                layer.bandIDs = [band.bands.bandId.toString()];
-                                                                layer.minMax = [{
-                                                                    min: band.bands.min,
-                                                                    max: band.bands.max,
-                                                                    minLim: band.bands.minimum,
-                                                                    maxLim: band.bands.maximum,
-                                                                }];
-
+                                                                return {
+                                                                    ...layer,
+                                                                    url: `${band.filepath || ""}/${band.filename || ""}`,
+                                                                    layer: band.band,
+                                                                    processingLevel: band.processingLevel,
+                                                                    productCode: band.productCode,
+                                                                    satID: band.satelliteId,
+                                                                    bandNames: [band.band],
+                                                                    bandIDs: [band.bands.bandId.toString()],
+                                                                    minMax: [{
+                                                                        min: band.bands.min,
+                                                                        max: band.bands.max,
+                                                                        minLim: band.bands.minimum,
+                                                                        maxLim: band.bands.maximum,
+                                                                    }],
+                                                                };
                                                             }
                                                             return layer;
                                                         });
@@ -512,6 +515,20 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                             <Button
                                 className="  mb-2 text-xs font-normal h-[30px]"
                                 onClick={() => {
+                                    setLayers((prev) => {
+                                        if (!prev) return null;
+                                        return prev.map((layer) => {
+                                            if (layer.id === Layers.id) {
+                                                layer.minMax = minMax.map((band, idx) => ({
+                                                    min: minMax[idx].min,
+                                                    max: minMax[idx].max,
+                                                    minLim: Layers.minMax[idx].minLim,
+                                                    maxLim: Layers.minMax[idx].maxLim,
+                                                }));
+                                            }
+                                            return layer;
+                                        });
+                                    })
                                     Layers.minMax.forEach((_, idx) => {
                                         updateMinMax(
                                             layerIndex,
@@ -539,6 +556,15 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                         <Trash2Icon className="h-4 w-4 text-red-500 hover:text-red-400 ml-2" onClick={() => {
                                             setColorMapValue("");
                                             if (layerIndex !== -1) {
+                                                setLayers((prev) => {
+                                                    if (!prev) return null;
+                                                    return prev.map((layer) => {
+                                                        if (layer.id === Layers.id) {
+                                                            layer.colormap = undefined;
+                                                        }
+                                                        return layer;
+                                                    });
+                                                });
                                                 updateColorMap(layerIndex, undefined);
                                             }
                                         }} />
@@ -568,6 +594,15 @@ export function SingleLayerItem({ Layers, index, onDragStart, onDragOver, onDrop
                                                     className="text-white font-semibold"
                                                     onSelect={(currentValue) => {
                                                         setColorMapValue(currentValue);
+                                                        setLayers((prev) => {
+                                                            if (!prev) return null;
+                                                            return prev.map((layer) => {
+                                                                if (layer.id === Layers.id) {
+                                                                    layer.colormap = currentValue as colorMap;
+                                                                }
+                                                                return layer;
+                                                            });
+                                                        });
 
                                                         if (layerIndex !== -1) {
                                                             updateColorMap(layerIndex, currentValue as colorMap);
