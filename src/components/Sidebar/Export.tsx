@@ -20,6 +20,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Loader2 } from "lucide-react";
 import { FileFormat } from "types/geojson";
+// import { Separator } from "../ui/separator";
 // import { Layers } from "@/constants/consts";
 
 export default function Export() {
@@ -30,6 +31,7 @@ export default function Export() {
   const [selectedLayers, setSelectedLayers] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRawLoading, setIsRawLoading] = useState(false);
 
   // Handle select all checkbox
   const handleSelectAll = (checked: boolean) => {
@@ -215,29 +217,37 @@ export default function Export() {
             try {
               setIsLoading(true);
 
-              const response = await fetch('http://74.226.242.56:5000/stack-layers', {
+              // Prepare the request payload in the specified format
+              const payload = {
+                format: selectedFormat.toLowerCase(),
+                data: layersToDownload.map(layer => {
+                  const downloadURL = GET_FINAL_DOWNLOAD_URL({
+                    url: layer.url,
+                    bands: layer.bandIDs.map(band => parseInt(band)),
+                    minMax: layer.minMax.map(band => [band.min, band.max]),
+                    bandExpression: bandExpression,
+                    mode: layer.layerType,
+                    bbox: bbox,
+                    colorMap: layer.colormap,
+                    tileFormat: selectedFormat as FileFormat,
+                  });
+
+                  return {
+                    transparency: layer.transparency,
+                    directURL: downloadURL,
+                    zIndex: layer.zIndex,
+                  };
+                }),
+              };
+
+              // Send the request to the new endpoint
+              const baseUrl = 'http://74.226.242.56:5000';
+              const response = await fetch(`${baseUrl}/download/layered`, {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(
-                  layersToDownload.map(layer => {
-                    const downloadURL = GET_DOWNLOAD_URL({
-                      url: layer.url,
-                      bands: layer.bandIDs.map(band => parseInt(band)),
-                      minMax: layer.minMax.map(band => [band.min, band.max]),
-                      bandExpression: bandExpression,
-                      mode: layer.layerType,
-                      bbox: bbox,
-                      tileFormat: selectedFormat as FileFormat,
-                    });
-                    return {
-                      transparency: layer.transparency,
-                      directURL: downloadURL,
-                      zIndex: layer.zIndex,
-                    };
-                  }),
-                ),
+                body: JSON.stringify(payload),
               });
 
               if (!response.ok) {
@@ -265,7 +275,7 @@ export default function Export() {
               a.remove();
             } catch (error) {
               console.error('Error downloading layers:', error);
-              // alert('An error occurred while downloading the layers');
+              alert('An error occurred while downloading the layers');
             } finally {
               setIsLoading(false);
             }
@@ -279,6 +289,93 @@ export default function Export() {
             </>
           ) : (
             "Download Selected Layers"
+          )}
+        </Button>
+
+        {/* Separator */}
+        <div className="relative my-4">
+          {/* <Separator className="bg-neutral-600" /> */}
+          <span className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 bg-neutral-800 px-2 text-xs text-neutral-400">
+            OR
+          </span>
+        </div>
+
+        {/* Download Raw Files Button */}
+        <Button
+          className="mt-4"
+
+          onClick={async () => {
+            const layersToDownload = getSelectedLayersData();
+            if (layersToDownload.length === 0) {
+              alert("Please select at least one layer to export");
+              return;
+            }
+
+            try {
+              setIsRawLoading(true);
+
+              // Create an array of download URLs for raw files
+              const downloadUrls = layersToDownload.map(layer =>
+                GET_FINAL_DOWNLOAD_URL({
+                  url: layer.url,
+                  bands: layer.bandIDs.map(band => parseInt(band)),
+                  minMax: layer.minMax.map(band => [band.min, band.max]),
+                  bandExpression: bandExpression,
+                  mode: layer.layerType,
+                  bbox: bbox,
+                  tileFormat: selectedFormat as FileFormat,
+                })
+              );
+
+              // Send the request to download raw files - just an array of URLs
+              const baseUrl = 'http://74.226.242.56:5000';
+              const response = await fetch(`${baseUrl}/download/raw`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(downloadUrls),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Failed to download raw files: ${response.statusText}`);
+              }
+
+              // Get the filename from the Content-Disposition header
+              const contentDisposition = response.headers.get('Content-Disposition');
+              let filename = `raw_layers.zip`;
+              if (contentDisposition) {
+                const matches = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/.exec(contentDisposition);
+                if (matches != null && matches[1]) {
+                  filename = matches[1].replace(/['"]/g, '');
+                }
+              }
+
+              const blob = await response.blob();
+              const url = window.URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = filename;
+              document.body.appendChild(a);
+              a.click();
+              window.URL.revokeObjectURL(url);
+              a.remove();
+            } catch (error) {
+              console.error('Error downloading raw files:', error);
+              alert('An error occurred while downloading the raw files');
+            } finally {
+              setIsRawLoading(false);
+            }
+          }}
+          disabled={selectedLayers.length === 0 || isRawLoading}
+        >
+          {isRawLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Downloading Raw Files...
+            </>
+          ) : (
+            "Download Raw Files"
           )}
         </Button>
 

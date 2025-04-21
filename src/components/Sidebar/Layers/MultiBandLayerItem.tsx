@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useGeoData } from "../../../contexts/GeoDataProvider";
 import { Layers, } from "@/constants/consts";
 import { Slider } from "../../ui/slider";
@@ -32,10 +32,10 @@ import {
 import { cn } from "@/lib/utils";
 import ListItem from "../list-item";
 import { Calendar as CalendarComponent } from "../../ui/calendar";
-import { fetchAvailableTimes, fetchAvailableDates, fetchAllBands } from "@/apis/req";
+import { fetchAvailableTimes, fetchAvailableDates, fetchAllBands, fetchAvailableBandsWithDateTime } from "@/apis/req";
 import { TZDate } from "react-day-picker";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
-import { CogItem } from "@/types/cog";
+import { CogItem, BandData } from "@/types/cog";
 
 export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     Layers: Layers,
@@ -64,12 +64,13 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
     const [time, setTime] = useState(Layers.time);
     const [timeOpen, setTimeOpen] = useState(false);
     const [allTimes, setAllTimes] = useState<string[]>([]);
-    const [allBands, setAllBands] = useState<CogItem>();
+    const [allBands, setAllBands] = useState<BandData[]>();
     const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
     const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
-    const [timeChanged, setTimeChanged] = useState(false);
-    useEffect(() => {
+    const firstLoad = useRef(true);
 
+    useEffect(() => {
+        console.log("MultiBandLayerItem mounted");
         // Fetch available dates from the API
         fetchAvailableDates(Layers)
             .then((dates) => {
@@ -83,111 +84,41 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                 }
             })
             .catch((error) => {
-                setAvailableDates([]);
                 console.error("Error fetching available dates:", error);
             });
-    }, [dateOpen]);
+    }, []);
 
-    useEffect(() => {
-        console.log("Date changed:", date);
-        // Fetch available times from the API
-        // if(allTimes) return;
-        fetchAvailableTimes(date as Date, Layers)
-            .then((times) => {
-                if (times) {
-                    console.log({ times })
-                    const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
-                    console.log("Available times:", convertedTimes);
-                    convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
-                    setTimeChanged((prev) => !prev);
-                    setAllTimes(convertedTimes);
-                }
-            })
-            .catch((error) => {
-                setAllTimes([]);
-                console.error("Error fetching available times:", error);
-            });
+    function updateChanges(allBands: BandData[]) {
+        console.log("Update changes called");
 
-        // if set time in all time do nothing else select [0]
-        //set alltimes all times
-        //update layers
-        //update map
-    }, [date])
-
-
-    useEffect(() => {
-        console.log("Time changed:", time);
-        if (date && time) {
-            fetchAllBands(date, time, Layers)
-                .then((data) => {
-                    if (data) {
-                        console.log("Fetched all bands:", data);
-                        setAllBands(data.cog);
-                    }
-                })
-                .catch((error) => {
-                    setAllBands(undefined);
-                    console.error("Error fetching all bands:", error);
-                });
-        }
-    }, [time, timeChanged])
-
-
-    useEffect(() => {
-        if (!allBands) {
-            console.warn("No bands available for the selected date and time.");
-            setLayers((prev) => {
-                return (prev ?? []).map((layer, idx) => {
-                    if (idx === layerIndex) {
-                        return {
-                            ...layer,
-                            url: "",
-                            minMax: Layers.minMax.map(() => ({
-                                min: 0,
-                                max: 0,
-                                minLim: 0,
-                                maxLim: 0,
-                            })),
-                        };
-                    }
-                    return layer;
-                });
-            });
-            updateLayerFunc(layerIndex, {
-                url: "",
-                minMax: Layers.minMax.map(() => ({
-                    min: 0,
-                    max: 0,
-                    minLim: 0,
-                    maxLim: 0,
-                })),
-            });
-            return;
-        }
-        console.log("All bands Called", allBands);
-        // Instead of replacing band information, only update the URL and time-related properties
         // Create a copy of the current minMax values to update
         const newMinMax = [...Layers.minMax];
 
         // For each existing band, update its min/max limits from the allBands data if available
         Layers.bandIDs.forEach((bandId, index) => {
-            const matchingBand = allBands.bands.find(band => band.bandId.toString() === bandId);
+            const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
             if (matchingBand) {
                 newMinMax[index] = {
-                    min: matchingBand.minimum,
-                    max: matchingBand.maximum,
-                    minLim: matchingBand.minimum,
-                    maxLim: matchingBand.maximum,
+                    min: matchingBand.bands.minimum,
+                    max: matchingBand.bands.maximum,
+                    minLim: matchingBand.bands.minimum,
+                    maxLim: matchingBand.bands.maximum,
                 };
             }
         });
 
+        const thisBand = allBands[0]; // Default to the first band for date/time info
+        if (!thisBand) return;
+
         const updatedLayerProp = {
-            date: new TZDate(allBands?.aquisition_datetime, "UTC"),
-            time: convertFromTimestamp(allBands?.aquisition_datetime),
-            url: `${allBands?.filepath || ""}/${allBands?.filename || ""}`,
+            date: new TZDate(thisBand?.aquisition_datetime as number, "UTC"),
+            time: convertFromTimestamp(thisBand?.aquisition_datetime as number),
+            url: `${thisBand?.filepath || ""}/${thisBand?.filename || ""}`,
             minMax: newMinMax,
-            // Don't update bandNames or bandIDs to preserve the current selection
+            processingLevel: thisBand?.processingLevel,
+            productCode: thisBand?.productCode,
+            satID: thisBand?.satelliteId,
+            // Keep existing bandNames and bandIDs
         };
 
         setLayers((prev) => {
@@ -203,9 +134,42 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
         });
 
         updateLayerFunc(layerIndex, updatedLayerProp);
-    }, [allBands]);
+    }
 
+    useEffect(() => {
+        if (firstLoad.current) {
+            console.log("First load, skipping effect");
+            firstLoad.current = false;
+            return;
+        }
 
+        // Fetch available times from the API
+        fetchAvailableTimes(date as Date, Layers)
+            .then((times) => {
+                if (times) {
+                    console.log({ times })
+                    const convertedTimes = times.map((time) => convertFromTimestamp(time.aquisition_datetime));
+                    console.log("Available times:", convertedTimes);
+                    convertedTimes.find((time) => time === Layers.time) ? setTime(Layers.time) : setTime(convertedTimes[0]);
+                    setAllTimes(convertedTimes);
+
+                    fetchAvailableBandsWithDateTime(Layers.satID, Layers.processingLevel as string, date as Date, time)
+                        .then((data) => {
+                            if (data) {
+                                console.log("Fetched all bands:", data);
+                                setAllBands(data.bandData);
+                                updateChanges(data.bandData);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching all bands:", error);
+                        });
+                }
+            })
+            .catch((error) => {
+                console.error("Error fetching available times:", error);
+            });
+    }, [date, time]);
 
     // Find the index of this layer in the context
     const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
@@ -416,25 +380,25 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                                 </SelectTrigger>
                                 <SelectContent className="bg-neutral-800 text-background font-semibold">
                                     {
-                                        allBands?.bands.map((band) => (
+                                        allBands?.map((band) => (
                                             <ListItem
                                                 className="hover:bg-neutral-400 bg-neutral-800"
 
                                                 onClick={() => {
-                                                    const bandName = band.description;
+                                                    const bandName = band.bands.description;
                                                     const newSelectedBands = [...selectedBands];
                                                     newSelectedBands[idx] = bandName;
                                                     setSelectedBands(newSelectedBands);
 
                                                     const newBandIDs = [...Layers.bandIDs];
-                                                    newBandIDs[idx] = band.bandId.toString();
+                                                    newBandIDs[idx] = band.bands.bandId.toString();
 
                                                     const newMinMax = [...Layers.minMax];
                                                     newMinMax[idx] = {
-                                                        min: band.minimum,
-                                                        max: band.maximum,
-                                                        minLim: band.minimum,
-                                                        maxLim: band.maximum,
+                                                        min: band.bands.minimum,
+                                                        max: band.bands.maximum,
+                                                        minLim: band.bands.minimum,
+                                                        maxLim: band.bands.maximum,
                                                     };
 
                                                     setMinMax(newMinMax);
@@ -462,10 +426,10 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                                                 }}
                                                 checked={
                                                     bandName ===
-                                                    band.description
+                                                    band.bands.description
                                                 }
                                             >
-                                                {band.description}
+                                                {band.bands.description}
                                             </ListItem>
                                         )
                                         )}

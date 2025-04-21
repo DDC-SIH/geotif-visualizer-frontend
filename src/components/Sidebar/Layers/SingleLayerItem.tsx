@@ -442,6 +442,7 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                                                     setMinMax((prev) => {
                                                         const newMinMax = [...prev];
                                                         newMinMax[idx] = {
+                                                            ...newMinMax[idx],
                                                             min: band.bands.min,
                                                             max: band.bands.max,
                                                         };
