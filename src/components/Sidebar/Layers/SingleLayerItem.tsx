@@ -105,13 +105,13 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
             if (matchingBand) {
                 newMinMax[index] = {
                     min: matchingBand.bands.minimum,
-                    max:  matchingBand.bands.maximum,
+                    max: matchingBand.bands.maximum,
                     minLim: matchingBand.bands.minimum,
                     maxLim: matchingBand.bands.maximum,
                 };
             }
         });
-        
+
 
         const thisBand = allBands.find(band => band.band === selectedBand);
         if (!thisBand) return;
@@ -219,22 +219,20 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
     const layerIndex = allLayers?.findIndex((layer) => layer.id === Layer.id) ?? -1;
 
     // // Update local state when layer properties change
-    // useEffect(() => {
-    //     // Update minMax state
-    //     setMinMax(Layers.minMax.map((band) => ({
-    //         min: band.min,
-    //         max: band.max,
-    //     })));
+    useEffect(() => {
+        // Update minMax state
+        setMinMax(Layer.minMax.map((band) => ({
+            min: band.min,
+            max: band.max,
+            minLim: band.minLim,
+            maxLim: band.maxLim,
+        })));
 
-    //     // Update colormap state
-    //     setColorMapValue(Layers.colormap || "");
+        // Update colormap state
+        // setColorMapValue(Layer.colormap || "");
 
-    //     //   // Update date and time state
-    //     //   if (Layers.date) {
-    //     //     setDate(new TZDate(Layers.date, "UTC"));
-    //     //   }
-    //     // //   setTime(Layers.time || "11:30");
-    // }, [Layers.minMax, Layers.colormap, Layers.date, Layers.time]);
+
+    }, [Layer.minMax]);
 
     // Handle min/max changes for a specific band
     const handleMinMaxChange = (index: number, values: number[]) => {
