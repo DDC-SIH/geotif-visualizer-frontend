@@ -240,11 +240,13 @@ export default function Animation() {
                 SatelliteId: satellite,
                 processingLevel: processingLevel,
                 productType: selectedProduct,
-                bandName: activeTab === "single" ? band?.band : (redBand.name || greenBand.name || blueBand.name),
+                bandName: activeTab === "single" 
+                    ? [band?.band] 
+                    : [redBand.name, greenBand.name, blueBand.name].filter(name => name),
                 startDateTime: dateRange.from.toISOString(),
                 endDateTime: dateRange.to.toISOString(),
                 interval: interval,
-                colourmap: colormap,
+                colourmap: activeTab === "single" ? colormap : undefined,
                 bbox: sendBBOX && bbox.active ? {
                     maxx: bbox.maxx,
                     maxy: bbox.maxy,
@@ -388,7 +390,7 @@ export default function Animation() {
 
                             <div className="space-y-2 mt-2">
                                 <label className="text-sm font-medium flex items-center gap-1">
-                                    Interval (days)
+                                    Interval (frame)
                                 </label>
                                 <input
                                     type="number"

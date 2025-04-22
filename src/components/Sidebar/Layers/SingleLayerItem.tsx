@@ -104,11 +104,11 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
             const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
             if (matchingBand) {
                 newMinMax[index] = {
-                    min: (matchingBand.bands.minimum <= newMinMax[index].min && newMinMax[index].min <= matchingBand.bands.maximum) 
-                        ? newMinMax[index].min 
+                    min: (matchingBand.bands.minimum <= newMinMax[index].min && newMinMax[index].min <= matchingBand.bands.maximum)
+                        ? newMinMax[index].min
                         : matchingBand.bands.minimum,
-                    max: (matchingBand.bands.minimum <= newMinMax[index].max && newMinMax[index].max <= matchingBand.bands.maximum) 
-                        ? newMinMax[index].max 
+                    max: (matchingBand.bands.minimum <= newMinMax[index].max && newMinMax[index].max <= matchingBand.bands.maximum)
+                        ? newMinMax[index].max
                         : matchingBand.bands.maximum,
                     minLim: matchingBand.bands.minimum,
                     maxLim: matchingBand.bands.maximum,
@@ -328,8 +328,9 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium">
-                        {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layer.processingLevel} / ${Layer.productCode} / ${Layer.layerType === "Singleband" ? Layer.bandNames[0] : "RGB"
-                            }`}
+                        {/* {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layer.processingLevel} / ${Layer.productCode} / ${Layer.layerType === "Singleband" ? Layer.bandNames[0] : "RGB"
+                            }`} */}
+                        { Layer.name}
                     </span>
 
                     {/* Delete button */}

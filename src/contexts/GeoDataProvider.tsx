@@ -32,8 +32,7 @@ interface GeoDataContextType {
   setLayerTransparency: React.Dispatch<React.SetStateAction<layerTransparency>>;
   mode: mode;
   setMode: React.Dispatch<React.SetStateAction<mode>>;
-  bandExpression: string;
-  setBandExpression: React.Dispatch<React.SetStateAction<string>>;
+
   bbox: bbox;
   setBBOX: React.Dispatch<React.SetStateAction<bbox>>;
   Layers: Layers[] | null;
@@ -102,7 +101,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
     maxx: null,
     maxy: null,
   });
-  const [bandExpression, setBandExpression] = useState("b1+b2");
+  // const [bandExpression, setBandExpression] = useState("b1+b2");
   const [layerTransparency, setLayerTransparency] = useState<layerTransparency>(
     {
       baseMapLayer: 1,
@@ -199,7 +198,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
           url: layerWithZIndex.url,
           bands: layerWithZIndex.bandIDs.map((band) => parseInt(band)),
           minMax: layerWithZIndex.minMax.map((band) => [band.min, band.max]),
-          bandExpression: bandExpression,
+          bandExpression: layerWithZIndex.expression,
           mode: layerWithZIndex.layerType,
         }),
         transition: 250,
@@ -302,7 +301,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
             url: updatedLayer.url,
             bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
             minMax: updatedLayer.minMax.map((band) => [band.min, band.max]),
-            bandExpression: bandExpression,
+            bandExpression: updatedLayer.expression,
             mode: updatedLayer.layerType,
             colorMap: colorMap,
           }),
@@ -361,7 +360,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
           url: updatedLayer.url,
           bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
           minMax: updatedLayer.minMax.map((band) => [band.min, band.max]),
-          bandExpression: bandExpression,
+          bandExpression: updatedLayer.expression,
           mode: updatedLayer.layerType,
           colorMap: colorMap,
         });
@@ -412,7 +411,7 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
             url: updatedLayer.url,
             bands: updatedLayer.bandIDs.map((band) => parseInt(band)),
             minMax: updatedLayer.minMax.map((band) => [band.min, band.max]),
-            bandExpression: bandExpression,
+            bandExpression: updatedLayer.expression,
             mode: updatedLayer.layerType,
             colorMap: updatedLayer.colormap,
           }),
@@ -458,8 +457,6 @@ export const GeoDataProvider: React.FC<GeoDataProviderProps> = ({
         setLayerTransparency,
         mode,
         setMode,
-        bandExpression,
-        setBandExpression,
         bbox,
         setBBOX,
         Layers,

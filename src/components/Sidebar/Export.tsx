@@ -19,7 +19,7 @@ import { Loader2, Download, Layers as LayersLogo, Search } from "lucide-react";
 import { FileFormat } from "types/geojson";
 
 export default function Export() {
-  const { bbox, bandExpression, Layers } = useGeoData();
+  const { bbox, Layers } = useGeoData();
 
   const [selectedFormat, setSelectedFormat] = useState(fileFormats[0]);
   const [searchInput, setSearchInput] = useState("");
@@ -110,7 +110,8 @@ export default function Export() {
                     className="data-[state=checked]:bg-primary"
                   />
                   <Label htmlFor={`layer-${layer.id}`} className="text-sm font-normal cursor-pointer flex-1 text-white">
-                    {layer.date.toISOString().split("T")[0]}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"}
+                    {layer.name}
+                    {/* {layer.date.toISOString().split("T")[0]}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"} */}
                   </Label>
                 </div>
               ))
@@ -226,7 +227,7 @@ export default function Export() {
                       url: layer.url,
                       bands: layer.bandIDs.map(band => parseInt(band)),
                       minMax: layer.minMax.map(band => [band.min, band.max]),
-                      bandExpression: bandExpression,
+                      bandExpression: layer.expression,
                       mode: layer.layerType,
                       bbox: bbox,
                       colorMap: layer.colormap,
@@ -316,7 +317,7 @@ export default function Export() {
                     url: layer.url,
                     bands: layer.bandIDs.map(band => parseInt(band)),
                     minMax: layer.minMax.map(band => [band.min, band.max]),
-                    bandExpression: bandExpression,
+                    bandExpression: layer.expression,
                     mode: layer.layerType,
                     bbox: bbox,
                     tileFormat: selectedFormat as FileFormat,

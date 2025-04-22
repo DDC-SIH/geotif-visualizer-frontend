@@ -16,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { MultiBandTab } from "./multi-band-tab";
 import { SingleBandTab } from "./single-band-tab";
-import { BandArithmeticTab } from "./band-arithmetic-tab";
+import { BandArithmaticTab } from "./band-arithmetic-tab";
 // import { Separator } from "./ui/separator";
 import { Card, CardContent } from "../ui/card";
 import {
@@ -258,9 +258,13 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
                   </TabsContent>
 
                   <TabsContent value="arithmetic">
-                    <div className="bg-neutral-800 p-4 rounded-md text-center">
-                      <p className="text-neutral-400">Band arithmetic features coming soon</p>
-                    </div>
+                    <BandArithmaticTab
+                      product={selectedProduct}
+                      satelliteId={satellite}
+                      processingLevel={processingLevel}
+                      onAdd={handleAdd}
+                      toggleOpen={() => setOpen(false)}
+                    />
                   </TabsContent>
                 </>
               )}
@@ -272,7 +276,7 @@ export function SatelliteBandDialog({ trigger }: SatelliteBandDialogProps) {
           <div className="text-xs text-neutral-400">
             {selectedProduct && !isLoading ? `Selected: ${satellite} • ${processingLevel} • ${selectedProduct}` : ""}
           </div>
-   
+
         </DialogFooter>
       </DialogContent>
     </Dialog>

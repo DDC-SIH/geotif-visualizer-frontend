@@ -65,7 +65,7 @@ export function MultiBandTab({
   useEffect(() => {
     if (satelliteId && processingLevel) {
       setIsLoading(true);
-      fetchBands({ satID: satelliteId, processingLevel: processingLevel,productCode: product })
+      fetchBands({ satID: satelliteId, processingLevel: processingLevel, productCode: product })
         .then((data) => {
           setAllBands(data?.cog);
           // Reset band selections when data changes
@@ -76,16 +76,18 @@ export function MultiBandTab({
         .catch(err => {
           console.error("Error fetching bands:", err);
         })
-        .finally(() => {  
+        .finally(() => {
           setIsLoading(false);
         });
     }
-  }, [processingLevel, satelliteId,product]);
+  }, [processingLevel, satelliteId, product]);
 
   const handleAdd = () => {
     if (!redBand.name || !greenBand.name || !blueBand.name || !allBands) return;
-
+    const date = new TZDate(allBands?.aquisition_datetime as number, "UTC");
+    const time = convertFromTimestamp(allBands?.aquisition_datetime as number);
     const layer: Layers = {
+      name: `${date?.toISOString().split("T")[0] || ""} / ${time} / ${processingLevel} / ${product} /  RGB`,
       id: Math.random().toString(36).substr(2, 9),
       layerType: "RGB",
       date: new TZDate(allBands?.aquisition_datetime as number, "UTC"),

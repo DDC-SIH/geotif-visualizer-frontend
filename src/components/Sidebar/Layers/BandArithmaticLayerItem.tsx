@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useGeoData } from "../../../contexts/GeoDataProvider";
-import { Layers, } from "@/constants/consts";
+import { Layers } from "@/constants/consts";
 import { Slider } from "../../ui/slider";
-import { DualRangeSlider } from "../../ui/dual-range-slider";
 import {
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "../../ui/accordion";
-import { Trash2Icon, Check, ChevronsUpDown, Calendar, Clock } from "lucide-react";
+import { Trash2Icon, Check, ChevronsUpDown, Calendar, Clock, CodeIcon } from "lucide-react";
 import { Button } from "../../ui/button";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import {
@@ -23,54 +22,36 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "../../ui/popover";
-import {
-    Select,
-    SelectContent,
-    SelectTrigger,
-    SelectValue,
-} from "../../ui/select";
 import { cn } from "@/lib/utils";
-import ListItem from "../list-item";
 import { Calendar as CalendarComponent } from "../../ui/calendar";
-import { fetchAvailableTimes, fetchAvailableDates, fetchAllBands, fetchAvailableBandsWithDateTime } from "@/apis/req";
+import { fetchAvailableTimes, fetchAvailableDates, fetchAvailableBandsWithDateTime } from "@/apis/req";
 import { TZDate } from "react-day-picker";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
-import { CogItem, BandData } from "@/types/cog";
+import { BandData } from "@/types/cog";
+import { Input } from "@/components/ui/input";
 
-export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
+export function BandArithmaticLayerItem({ Layers, index, onDragStart, onDragOver, onDrop }: {
     Layers: Layers,
     index: number,
     onDragStart: (e: React.DragEvent, index: number) => void,
     onDragOver: (e: React.DragEvent) => void,
     onDrop: (e: React.DragEvent, index: number) => void
 }) {
-    const { setLayers, Layers: allLayers, updateOpacity, updateMinMax, removeLayer, updateLayerFunc } = useGeoData();
-    const [minMaxError, setMinMaxError] = useState(
-        Layers.bandNames.map(() => ({ minError: "", maxError: "" }))
-    );
-    const [minMax, setMinMax] = useState(
-        Layers.minMax.map((band) => ({
-            min: band.min,
-            max: band.max,
-        }))
-    );
+    const { setLayers, Layers: allLayers, updateOpacity, removeLayer, updateLayerFunc } = useGeoData();
+    const [expression, setExpression] = useState<string>(Layers.expression || "");
 
     // Date and time state
-    const [date, setDate] = useState<Date | undefined>(
-        Layers.date
-    );
+    const [date, setDate] = useState<Date | undefined>(Layers.date);
     const [dateOpen, setDateOpen] = useState(false);
-
     const [time, setTime] = useState(Layers.time);
     const [timeOpen, setTimeOpen] = useState(false);
     const [allTimes, setAllTimes] = useState<string[]>([]);
     const [allBands, setAllBands] = useState<BandData[]>();
-    const [selectedBands, setSelectedBands] = useState<string[]>(Layers.bandNames);
     const [availableDates, setAvailableDates] = useState<{ date: string; datetime: number }[]>([]);
     const firstLoad = useRef(true);
 
     useEffect(() => {
-        console.log("MultiBandLayerItem mounted");
+        console.log("BandArithmaticLayerItem mounted");
         // Fetch available dates from the API
         fetchAvailableDates(Layers)
             .then((dates) => {
@@ -91,26 +72,6 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
     function updateChanges(allBands: BandData[]) {
         console.log("Update changes called");
 
-        // Create a copy of the current minMax values to update
-        const newMinMax = [...Layers.minMax];
-
-        // For each existing band, update its min/max limits from the allBands data if available
-        Layers.bandIDs.forEach((bandId, index) => {
-            const matchingBand = allBands.find(band => band.bands.bandId.toString() === bandId);
-            if (matchingBand) {
-                newMinMax[index] = {
-                    min: (matchingBand.bands.minimum <= newMinMax[index].min && newMinMax[index].min <= matchingBand.bands.maximum)
-                        ? newMinMax[index].min
-                        : matchingBand.bands.minimum,
-                    max: (matchingBand.bands.minimum <= newMinMax[index].max && newMinMax[index].max <= matchingBand.bands.maximum)
-                        ? newMinMax[index].max
-                        : matchingBand.bands.maximum,
-                    minLim: matchingBand.bands.minimum,
-                    maxLim: matchingBand.bands.maximum,
-                };
-            }
-        });
-
         const thisBand = allBands[0]; // Default to the first band for date/time info
         if (!thisBand) return;
 
@@ -118,11 +79,9 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
             date: new TZDate(thisBand?.aquisition_datetime as number, "UTC"),
             time: convertFromTimestamp(thisBand?.aquisition_datetime as number),
             url: `${thisBand?.filepath || ""}/${thisBand?.filename || ""}`,
-            minMax: newMinMax,
             processingLevel: thisBand?.processingLevel,
             productCode: thisBand?.productCode,
             satID: thisBand?.satelliteId,
-            // Keep existing bandNames and bandIDs
         };
 
         setLayers((prev) => {
@@ -178,53 +137,6 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
     // Find the index of this layer in the context
     const layerIndex = allLayers?.findIndex((layer) => layer.id === Layers.id) ?? -1;
 
-    // Update local state when layer properties change
-    useEffect(() => {
-        // Update minMax state
-        setMinMax(Layers.minMax.map((band) => ({
-            min: band.min,
-            max: band.max,
-        })));
-    }, [Layers.minMax]);
-
-    // Handle min/max changes for a specific band
-    const handleMinMaxChange = (index: number, values: number[]) => {
-        const [min, max] = values;
-        const newMinMax = [...minMax];
-        const newMinMaxError = [...minMaxError];
-
-        // Validate min value
-        if (min >= Layers.minMax[index].minLim && min <= max) {
-            newMinMax[index].min = min;
-            newMinMaxError[index].minError = "";
-        } else {
-            newMinMaxError[index].minError = "Invalid";
-        }
-
-        // Validate max value
-        if (max <= Layers.minMax[index].maxLim && max >= min) {
-            newMinMax[index].max = max;
-            newMinMaxError[index].maxError = "";
-        } else {
-            newMinMaxError[index].maxError = "Invalid";
-        }
-
-        setMinMax(newMinMax);
-        setMinMaxError(newMinMaxError);
-    };
-
-    // Check if any min/max has changed
-    const hasMinMaxChanged = () => {
-        return minMax.some((band, idx) =>
-            band.min !== Layers.minMax[idx].min || band.max !== Layers.minMax[idx].max
-        );
-    };
-
-    // Check if there are any validation errors
-    const hasErrors = () => {
-        return minMaxError.some(error => error.minError || error.maxError);
-    };
-
     // Handle date change
     const handleDateChange = (newDate: Date | undefined) => {
         setDate(newDate);
@@ -259,6 +171,23 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
         setTimeOpen(false);
     };
 
+    // Handle expression update
+    const handleExpressionUpdate = () => {
+        if (expression !== Layers.expression && layerIndex !== -1) {
+            updateLayerFunc(layerIndex, { expression });
+
+            setLayers((prev) => {
+                if (!prev) return null;
+                return prev.map((layer, idx) => {
+                    if (idx === layerIndex) {
+                        return { ...layer, expression };
+                    }
+                    return layer;
+                });
+            });
+        }
+    };
+
     return (
         <div
             draggable
@@ -275,7 +204,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium">
-                       {Layers.name}
+                      {Layers.name}
                     </span>
 
                     {/* Delete button */}
@@ -366,144 +295,51 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                         </div>
                     </div>
 
-                    {Layers.bandNames.map((bandName, idx) => (
-                        <div key={idx} className="mb-4">
-                            <Select>
-                                <SelectTrigger
-                                    className={cn(
-                                        "bg-transparent h-[27px] font-semibold text-white",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 1 && "text-red-600",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 2 && "text-green-600",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 3 && "text-blue-600"
-                                    )}
-                                >
-                                    <SelectValue
-                                        placeholder={bandName}
-                                    />
-                                </SelectTrigger>
-                                <SelectContent className="bg-neutral-800 text-background font-semibold">
-                                    {
-                                        allBands?.map((band) => (
-                                            <ListItem
-                                                className="hover:bg-neutral-400 bg-neutral-800"
-
-                                                onClick={() => {
-                                                    const bandName = band.bands.description;
-                                                    const newSelectedBands = [...selectedBands];
-                                                    newSelectedBands[idx] = bandName;
-                                                    setSelectedBands(newSelectedBands);
-
-                                                    const newBandIDs = [...Layers.bandIDs];
-                                                    newBandIDs[idx] = band.bands.bandId.toString();
-
-                                                    const newMinMax = [...Layers.minMax];
-                                                    newMinMax[idx] = {
-                                                        min: band.bands.minimum,
-                                                        max: band.bands.maximum,
-                                                        minLim: band.bands.minimum,
-                                                        maxLim: band.bands.maximum,
-                                                    };
-
-                                                    setMinMax(newMinMax);
-
-                                                    updateLayerFunc(layerIndex, {
-                                                        bandNames: newSelectedBands,
-                                                        bandIDs: newBandIDs,
-                                                        minMax: newMinMax,
-                                                    });
-
-                                                    setLayers((prev) => {
-                                                        return (prev ?? []).map((layer, id) => {
-                                                            if (id === layerIndex) {
-                                                                return {
-                                                                    ...layer,
-                                                                    bandNames: newSelectedBands,
-                                                                    bandIDs: newBandIDs,
-                                                                    minMax: newMinMax,
-                                                                };
-                                                            }
-                                                            return layer;
-                                                        });
-                                                    })
-
-                                                }}
-                                                checked={
-                                                    bandName ===
-                                                    band.bands.description
-                                                }
-                                            >
-                                                {band.bands.description}
-                                            </ListItem>
-                                        )
-                                        )}
-                                </SelectContent>
-                            </Select>
-
-                            <div className="mb-2">
-
-                                <div className="flex justify-between text-background text-xs font-medium mb-1">
-                                    <div className="mt-1">
-                                        MinMax
-                                        {minMaxError[idx]?.minError && (
-                                            <span className="text-red-600 font-medium ml-1">
-                                                ({minMaxError[idx].minError})
-                                            </span>
-                                        )}
-                                    </div>
-                                    <div>
-                                        {minMaxError[idx]?.maxError && (
-                                            <span className="text-red-600 font-medium ml-1">
-                                                ({minMaxError[idx].maxError})
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="relative mt-2">
-                                    <DualRangeSlider
-                                        value={[minMax[idx].min, minMax[idx].max]}
-                                        min={Layers.minMax[idx].minLim}
-                                        max={Layers.minMax[idx].maxLim}
-                                        step={(Layers.minMax[idx].maxLim - Layers.minMax[idx].minLim) / 100}
-                                        minStepsBetweenThumbs={1}
-                                        className="mt-2"
-                                        onValueChange={(values) => handleMinMaxChange(idx, values)}
-                                    />
-                                </div>
-
-                                <div className="flex justify-between text-background text-xs mt-1">
-                                    <span>{Layers.minMax[idx].minLim}</span>
-                                    <span>{Layers.minMax[idx].maxLim}</span>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-
-                    <div className="w-full flex items-start">
-                        {hasMinMaxChanged() && !hasErrors() && (
+                    {/* Band Arithmetic Expression */}
+                    <div className="mb-4">
+                        <p className="text-sm font-medium mb-1 text-white flex items-center">
+                            <CodeIcon className="mr-2 h-4 w-4" />
+                            Band Arithmetic Expression
+                        </p>
+                        <div className="flex">
+                            <Input
+                                value={expression}
+                                onChange={(e) => setExpression(e.target.value)}
+                                className="bg-neutral-900 border-neutral-700 text-primary-foreground"
+                                placeholder="e.g., (B4-B3)/(B4+B3)"
+                            />
                             <Button
-                                className="  mb-2 text-xs font-normal h-[30px]"
-                                onClick={() => {
-                                    Layers.minMax.forEach((_, idx) => {
-                                        updateMinMax(
-                                            layerIndex,
-                                            minMax[idx].min,
-                                            minMax[idx].max,
-                                            idx
-                                        );
-                                    });
-                                }}
+                                className="ml-2 h-9"
+                                onClick={handleExpressionUpdate}
+                                disabled={expression === Layers.expression}
                             >
                                 Apply
                             </Button>
-                        )}
+                        </div>
                     </div>
+
+                    {/* Used Bands Display */}
+                    {Layers.bandIDs && Layers.bandIDs.length > 0 && (
+                        <div className="mb-4">
+                            <p className="text-sm font-medium mb-1 text-white">Used Bands</p>
+                            <div className="bg-neutral-900 rounded-md p-2 text-sm text-primary-foreground">
+                                {Layers.bandIDs.map((bandId, idx) => (
+                                    <div key={idx} className="mb-1 flex justify-between">
+                                        <span>{bandId}</span>
+                                        <span className="text-neutral-400">{Layers.bandNames[idx]}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Layer Transparency */}
                     <div>
-                        <p className="text-background text-xs font-medium mb-2">
+                        <p className="text-white text-xs font-medium mb-2">
                             Layer Transparency
                         </p>
                         <Slider
-                            title={"Transparency"}
+                            title="Transparency"
                             value={[Layers.transparency * 100]}
                             step={10}
                             onValueChange={(val) => {

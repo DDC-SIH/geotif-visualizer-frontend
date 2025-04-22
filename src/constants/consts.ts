@@ -77,12 +77,14 @@ export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
 
   tempObj.searchParams.append("url", params.url);
 
-  if (params.bands.length > 0) {
-    params.bands.forEach((element) => {
-      tempObj.searchParams.append("bidx", element.toString());
-    });
-  } else {
-    tempObj.searchParams.append("bidx", "1");
+  if (params.mode !== "BandArithmatic") {
+    if (params.bands.length > 0) {
+      params.bands.forEach((element) => {
+        tempObj.searchParams.append("bidx", element.toString());
+      });
+    } else {
+      tempObj.searchParams.append("bidx", "1");
+    }
   }
   if (params.mode !== "BandArithmatic") {
     params.minMax.map((item) => {
@@ -130,12 +132,14 @@ export const GET_FINAL_DOWNLOAD_URL = (params: TITILER_PARAMS) => {
 
   tempObj.searchParams.append("url", params.url);
 
-  if (params.bands.length > 0) {
-    params.bands.forEach((element) => {
-      tempObj.searchParams.append("bidx", element.toString());
-    });
-  } else {
-    tempObj.searchParams.append("bidx", "1");
+  if (params.mode !== "BandArithmatic") {
+    if (params.bands.length > 0) {
+      params.bands.forEach((element) => {
+        tempObj.searchParams.append("bidx", element.toString());
+      });
+    } else {
+      tempObj.searchParams.append("bidx", "1");
+    }
   }
   if (params.mode !== "BandArithmatic") {
     params.minMax.map((item) => {
@@ -205,6 +209,7 @@ export const GET_DOWNLOAD_URL = (params: DOWNLOAD_PARAMS) => {
 type LayerType = "BandArithmatic" | "Singleband" | "RGB"
 // type satID= 
 export interface Layers {
+  name: string,
   id: string
   layerType: LayerType,
   satID: string,
@@ -225,6 +230,7 @@ export interface Layers {
   layer: unknown,
   zIndex?: number, // Add zIndex property to track layer positioning
   productCode?: string,
+  expression?: string, // Add expression property for band arithmetic
 }
 
 

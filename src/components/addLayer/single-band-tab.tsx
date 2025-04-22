@@ -59,12 +59,14 @@ export function SingleBandTab({
 
   const handleAdd = () => {
     if (!band) return;
-
+    const date = new TZDate(band?.aquisition_datetime as number, "UTC");
+    const time = convertFromTimestamp(band?.aquisition_datetime as number);
     const layer: Layers = {
       id: Math.random().toString(36).substr(2, 9),
+      name: `${date?.toISOString().split("T")[0] || ""} / ${time} / ${processingLevel} / ${product} /  ${band.band}`,
       layerType: "Singleband",
-      date: new TZDate(band?.aquisition_datetime as number, "UTC"),
-      time: convertFromTimestamp(band?.aquisition_datetime as number),
+      date: date,
+      time: time,
       satID: satelliteId,
       bandNames: [band.band],
       bandIDs: [band.bands.bandId.toString()],

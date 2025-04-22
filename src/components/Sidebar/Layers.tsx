@@ -6,6 +6,7 @@ import {
 import { SatelliteBandDialog } from "../addLayer/satellite-band-dialog";
 import { SingleLayerItem } from "./Layers/SingleLayerItem";
 import { MultiBandLayerItem } from "./Layers/MultiBandLayerItem";
+import { BandArithmaticLayerItem } from "./Layers/BandArithmaticLayerItem";
 
 
 export default function LayersSection() {
@@ -80,6 +81,15 @@ export default function LayersSection() {
               />
             ) : layer.layerType === "Singleband" ? (
               <SingleLayerItem
+                key={layer.id}
+                Layers={layer}
+                index={index}
+                onDragStart={handleDragStart}
+                onDragOver={handleDragOver}
+                onDrop={handleDrop}
+              />
+            ) : layer.layerType === "BandArithmatic" ? (
+              <BandArithmaticLayerItem
                 key={layer.id}
                 Layers={layer}
                 index={index}
