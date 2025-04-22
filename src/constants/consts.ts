@@ -49,27 +49,24 @@ export const baseMaps: basemap[] = [
 
 export const fileFormats: FileFormat[] = [
   "tif",
-  "jp2",
   "png",
-  "pngraw",
   "jpeg",
   "jpg",
   "webp",
-  "npy",
 ];
 
 
 
-interface TITILER_PARAMS {
-  url: string;
-  bands: string[] | number[];
-  tileFormat?: FileFormat;
-  bandExpression?: string;
-  minMax: number[][];
-  mode: LayerType;
-  bbox?: bboxtype;
-  colorMap?: colorMap;
-}
+  interface TITILER_PARAMS {
+    url: string;
+    bands: string[] | number[];
+    tileFormat?: FileFormat;
+    bandExpression?: string;
+    minMax: number[][];
+    mode: LayerType;
+    bbox?: bboxtype;
+    colorMap?: colorMap;
+  }
 export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
   let url = TileEndpoint;
   if (params.tileFormat) {
