@@ -17,6 +17,7 @@ import { Checkbox } from "../ui/checkbox";
 import { Label } from "../ui/label";
 import { Loader2, Download, Layers as LayersLogo, Search } from "lucide-react";
 import { FileFormat } from "types/geojson";
+import { ScrollArea } from "../ui/scroll-area";
 
 export default function Export() {
   const { bbox, Layers } = useGeoData();
@@ -98,27 +99,29 @@ export default function Export() {
             </Label>
           </div>
 
-          {/* Layer Checkboxes */}
-          <div className="space-y-1 max-h-[200px] overflow-y-auto pr-1 custom-scrollbar">
-            {Layers && Layers.length > 0 ? (
-              Layers.map(layer => (
-                <div key={layer.id} className="flex items-center space-x-2 p-2 rounded hover:bg-neutral-700">
-                  <Checkbox
-                    id={`layer-${layer.id}`}
-                    checked={selectedLayers.includes(layer.id)}
-                    onCheckedChange={(checked) => handleLayerSelect(layer.id, !!checked)}
-                    className="data-[state=checked]:bg-primary"
-                  />
-                  <Label htmlFor={`layer-${layer.id}`} className="text-sm font-normal cursor-pointer flex-1 text-white">
-                    {layer.name}
-                    {/* {layer.date.toISOString().split("T")[0]}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"} */}
-                  </Label>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-neutral-400 p-2">No layers available for export</p>
-            )}
-          </div>
+          {/* Layer Checkboxes - Using ScrollArea for improved scrolling */}
+          <ScrollArea className="h-[15vh] pr-2">
+            <div className="space-y-1 pr-3">
+              {Layers && Layers.length > 0 ? (
+                Layers.map(layer => (
+                  <div key={layer.id} className="flex items-center space-x-2 p-2 rounded hover:bg-neutral-700">
+                    <Checkbox
+                      id={`layer-${layer.id}`}
+                      checked={selectedLayers.includes(layer.id)}
+                      onCheckedChange={(checked) => handleLayerSelect(layer.id, !!checked)}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                    <Label htmlFor={`layer-${layer.id}`} className="text-sm font-normal cursor-pointer flex-1 text-white">
+                      {layer.name}
+                      {/* {layer.date.toISOString().split("T")[0]}/{layer.processingLevel}/{layer.layerType === "Singleband" ? layer.bandNames[0] : "RGB"} */}
+                    </Label>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-neutral-400 p-2">No layers available for export</p>
+              )}
+            </div>
+          </ScrollArea>
 
           {/* Layer count indicator */}
           <p className="text-xs mt-2 text-neutral-400">
