@@ -34,16 +34,16 @@ export function SingleBandTab({
   toggleOpen,
 }: SingleBandTabProps) {
   const [band, setBand] = useState<BandData | null>(null);
-  const [allBands, setAllBands] = useState<BandData[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [allSingleBands, setAllSingleBands] = useState<BandData[]>([]);
+  const [isSingleLoading, setIsSingleLoading] = useState(false);
   const { addLayer } = useGeoData();
 
   useEffect(() => {
     if (satelliteId && processingLevel && product) {
-      setIsLoading(true);
+      setIsSingleLoading(true);
       fetchLatestAvailableBandsWithData(satelliteId, processingLevel, product)
         .then((data) => {
-          setAllBands(data.bandData || []);
+          setAllSingleBands(data.bandData || []);
           if (data.bandData && data.bandData.length > 0) {
             setBand(data.bandData[0]);
           }
@@ -52,7 +52,7 @@ export function SingleBandTab({
           console.error("Error fetching band data:", err);
         })
         .finally(() => {
-          setIsLoading(false);
+          setIsSingleLoading(false);
         });
     }
   }, [processingLevel, product, satelliteId]);
@@ -89,7 +89,7 @@ export function SingleBandTab({
   return (
     <Card className="bg-neutral-800 border-neutral-700">
       <CardContent className="space-y-4 pt-6">
-        {isLoading ? (
+        {isSingleLoading ? (
           <div className="flex items-center justify-center p-4 text-neutral-400">
             <div className="animate-spin mr-2 h-4 w-4 border-t-2 border-white border-r-2 border-b-2 border-neutral-600 rounded-full"></div>
             Loading bands...
@@ -103,10 +103,10 @@ export function SingleBandTab({
               <Select
                 value={band?.band || ''}
                 onValueChange={(value) => {
-                  const selectedBand = allBands.find((b) => b.band === value);
+                  const selectedBand = allSingleBands.find((b) => b.band === value);
                   setBand(selectedBand || null);
                 }}
-                disabled={allBands.length === 0}
+                disabled={allSingleBands.length === 0}
               >
                 <SelectTrigger className="bg-neutral-900 border-neutral-700 text-primary-foreground">
                   <SelectValue placeholder="Select a band" />
@@ -117,7 +117,7 @@ export function SingleBandTab({
                   align="start"
                   sideOffset={5}
                 >
-                  {allBands.length > 0 ? allBands.map((band, index) => (
+                  {allSingleBands.length > 0 ? allSingleBands.map((band, index) => (
                     <SelectItem key={index} value={band.band} className="py-2.5">
                       {band.band}
                     </SelectItem>

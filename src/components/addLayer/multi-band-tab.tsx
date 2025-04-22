@@ -65,7 +65,7 @@ export function MultiBandTab({
   useEffect(() => {
     if (satelliteId && processingLevel) {
       setIsLoading(true);
-      fetchBands({ satID: satelliteId, processingLevel: processingLevel })
+      fetchBands({ satID: satelliteId, processingLevel: processingLevel,productCode: product })
         .then((data) => {
           setAllBands(data?.cog);
           // Reset band selections when data changes
@@ -76,11 +76,11 @@ export function MultiBandTab({
         .catch(err => {
           console.error("Error fetching bands:", err);
         })
-        .finally(() => {
+        .finally(() => {  
           setIsLoading(false);
         });
     }
-  }, [processingLevel, satelliteId]);
+  }, [processingLevel, satelliteId,product]);
 
   const handleAdd = () => {
     if (!redBand.name || !greenBand.name || !blueBand.name || !allBands) return;

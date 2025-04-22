@@ -6,6 +6,7 @@ import {
   // LayoutTemplate,
   Settings2,
   BoxSelectIcon,
+  Film,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,7 @@ import ProcessingTemplates from "./processingTemplates";
 import { useGeoData } from "@/contexts/GeoDataProvider";
 import Basemap from "./Basemap";
 import LayersSection from "./Layers";
+import Animation from "./Animation";
 // import MultibandSection from "./Multiband";
 
 function MapSideBar() {
@@ -22,20 +24,18 @@ function MapSideBar() {
   const [activeSidebar, setActiveSidebar] = useState<string | null>(mode);
 
   return (
-    
+
     <div className="fixed left-0 top-0 flex h-full pointer-events-auto z-[10] bg-neutral-900 ">
       {/* Icons Bar */}
       <div className=" flex flex-col justify-between  z-[2]">
         <div className="flex flex-col ">
           <Button
             size="icon"
-            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
-              activeSidebar === "singleband" ? "bg-neutral-500" : ""
-            } ${
-              activeSidebar === "singleband"
+            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${activeSidebar === "singleband" ? "bg-neutral-500" : ""
+              } ${activeSidebar === "singleband"
                 ? "hover:bg-neutral-400"
                 : "hover:bg-neutral-800"
-            }`}
+              }`}
             onClick={() => {
               setActiveSidebar(
                 activeSidebar === "singleband" ? null : "singleband"
@@ -44,11 +44,10 @@ function MapSideBar() {
             }}
           >
             <BoxSelectIcon
-              className={`h-8 w-8 ${
-                activeSidebar === "singleband"
+              className={`h-8 w-8 ${activeSidebar === "singleband"
                   ? "text-primary-foreground"
                   : "text-white"
-              }`}
+                }`}
             />
           </Button>
           {/* <Button
@@ -77,23 +76,20 @@ function MapSideBar() {
           </Button> */}
           <Button
             size="icon"
-            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
-              activeSidebar === "basemap" ? "bg-neutral-500" : ""
-            } ${
-              activeSidebar === "basemap"
+            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${activeSidebar === "basemap" ? "bg-neutral-500" : ""
+              } ${activeSidebar === "basemap"
                 ? "hover:bg-neutral-400"
                 : "hover:bg-neutral-800"
-            }`}
+              }`}
             onClick={() =>
               setActiveSidebar(activeSidebar === "basemap" ? null : "basemap")
             }
           >
             <MapIcon
-              className={`h-8 w-8 ${
-                activeSidebar === "basemap"
+              className={`h-8 w-8 ${activeSidebar === "basemap"
                   ? "text-primary-foreground"
                   : "text-white"
-              }`}
+                }`}
             />
           </Button>
           {/* <Button
@@ -142,23 +138,39 @@ function MapSideBar() {
 
           <Button
             size="icon"
-            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${
-              activeSidebar === "export" ? "bg-neutral-500" : ""
-            } ${
-              activeSidebar === "export"
+            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${activeSidebar === "animation" ? "bg-neutral-500" : ""
+              } ${activeSidebar === "animation"
                 ? "hover:bg-neutral-400"
                 : "hover:bg-neutral-800"
-            }`}
+              }`}
+            onClick={() =>
+              setActiveSidebar(activeSidebar === "animation" ? null : "animation")
+            }
+          >
+            <Film
+              className={`h-8 w-8 ${activeSidebar === "animation"
+                  ? "text-primary-foreground"
+                  : "text-white"
+                }`}
+            />
+          </Button>
+
+          <Button
+            size="icon"
+            className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${activeSidebar === "export" ? "bg-neutral-500" : ""
+              } ${activeSidebar === "export"
+                ? "hover:bg-neutral-400"
+                : "hover:bg-neutral-800"
+              }`}
             onClick={() =>
               setActiveSidebar(activeSidebar === "export" ? null : "export")
             }
           >
             <DownloadCloud
-              className={`h-8 w-8 ${
-                activeSidebar === "export"
+              className={`h-8 w-8 ${activeSidebar === "export"
                   ? "text-primary-foreground"
                   : "text-white"
-              }`}
+                }`}
             />
           </Button>
         </div>
@@ -184,6 +196,7 @@ function MapSideBar() {
           {activeSidebar === "basemap" && <Basemap />}
           {activeSidebar === "singleband" && <LayersSection />}
           {activeSidebar === "export" && <Export />}
+          {activeSidebar === "animation" && <Animation />}
           {/* {activeSidebar === "multiband" && <MultibandSection />} */}
         </div>
       </div>
