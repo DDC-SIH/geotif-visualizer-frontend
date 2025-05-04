@@ -211,6 +211,7 @@ export const GET_DOWNLOAD_URL = (params: DOWNLOAD_PARAMS) => {
   return url + tempObj.search;
 };
 
+export const DOWNLOADER_BASE_URL = 'http://74.226.242.56:5000'
 
 type LayerType = "BandArithmatic" | "Singleband" | "RGB"
 // type satID= 

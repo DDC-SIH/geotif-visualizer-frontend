@@ -155,7 +155,7 @@ function MapSideBar() {
             />
           </Button>
 
-          <Button
+          {/* <Button
             size="icon"
             className={`rounded-none bg-foreground p-8 active:border-0 active:outline-none focus:border-0 focus:outline-none ${activeSidebar === "export" ? "bg-neutral-500" : ""
               } ${activeSidebar === "export"
@@ -172,7 +172,7 @@ function MapSideBar() {
                   : "text-white"
                 }`}
             />
-          </Button>
+          </Button> */}
         </div>
         {/* <MapUserPopup isLoggedIn={isLoggedIn} /> */}
       </div>
@@ -195,7 +195,7 @@ function MapSideBar() {
           {activeSidebar === "ProcessingTemplates" && <ProcessingTemplates />}
           {activeSidebar === "basemap" && <Basemap />}
           {activeSidebar === "singleband" && <LayersSection />}
-          {activeSidebar === "export" && <Export />}
+          {/* {activeSidebar === "export" && <Export />} */}
           {activeSidebar === "animation" && <Animation />}
           {/* {activeSidebar === "multiband" && <MultibandSection />} */}
         </div>
