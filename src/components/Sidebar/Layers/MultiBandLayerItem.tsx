@@ -275,7 +275,7 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                         <DotsVerticalIcon className="-ml-3 h-5 w-5" />
                     </div>
                     <span className="text-xs font-medium">
-                       {Layers.name}
+                        {Layers.name}
                     </span>
 
                     {/* Delete button */}
@@ -372,9 +372,9 @@ export function MultiBandLayerItem({ Layers, index, onDragStart, onDragOver, onD
                                 <SelectTrigger
                                     className={cn(
                                         "bg-transparent h-[27px] font-semibold text-white",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 1 && "text-red-600",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 2 && "text-green-600",
-                                        // Layers.bandNames.length === 3 && parseInt(Layers.bandIDs[idx]) === 3 && "text-blue-600"
+                                         idx === 0 && "text-red-600",
+                                         idx === 1 && "text-green-600",
+                                         idx === 2 && "text-blue-600"
                                     )}
                                 >
                                     <SelectValue
