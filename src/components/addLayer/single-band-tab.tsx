@@ -77,7 +77,7 @@ export function SingleBandTab({
         maxLim: band.bands.maximum,
       }],
       url: `${band?.filepath || ""}/${band?.filename || ""}`,
-      colormap: undefined,
+      colormap: "gray",
       transparency: 1,
       processingLevel: band?.processingLevel,
       productCode: band?.productCode,

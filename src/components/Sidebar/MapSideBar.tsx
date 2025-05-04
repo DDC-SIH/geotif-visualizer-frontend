@@ -181,12 +181,12 @@ function MapSideBar() {
       <div
         className={cn(
           "h-full   transition-all duration-200 ease-out z-[9998]",
-          activeSidebar ? "w-[300px]" : "w-0 overflow-hidden"
+          activeSidebar ? "w-[350px]" : "w-0 overflow-hidden"
         )}
       >
         <div
           className={cn(
-            "w-[300px] h-full p-4",
+            "w-[350px] h-full p-4",
             activeSidebar
               ? "opacity-100 transition-opacity duration-200 delay-150"
               : "opacity-0"

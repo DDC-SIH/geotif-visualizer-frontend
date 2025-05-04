@@ -9,7 +9,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "../../ui/accordion";
-import { Trash2Icon, Check, ChevronsUpDown, Calendar, Clock } from "lucide-react";
+import { Trash2Icon, Check, ChevronsUpDown, Calendar, Clock, RefreshCcw } from "lucide-react";
 import { Button } from "../../ui/button";
 import { DotsVerticalIcon } from "@radix-ui/react-icons";
 import {
@@ -38,6 +38,7 @@ import { fetchAvailableTimes, fetchAvailableDates, fetchAvailableBandsWithDateTi
 import { colorMap } from "@/types/colormap";
 import { TZDate } from "react-day-picker";
 import { convertFromTimestamp } from "@/utils/convertFromTimeStamp";
+import ColorMapLegend from "../ColorMapLegend";
 
 
 export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver, onDrop }: {
@@ -330,7 +331,7 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                     <span className="text-xs font-medium">
                         {/* {`${date?.toISOString().split("T")[0] || ""} / ${time} / ${Layer.processingLevel} / ${Layer.productCode} / ${Layer.layerType === "Singleband" ? Layer.bandNames[0] : "RGB"
                             }`} */}
-                        { Layer.name}
+                        {Layer.name}
                     </span>
 
                     {/* Delete button */}
@@ -535,6 +536,10 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                                         onValueChange={(values) => handleMinMaxChange(idx, values)}
                                     />
                                 </div>
+                                <div className="flex items-center justify-between mt-2">
+                                    <ColorMapLegend colormap={Layer.colormap} width={350} height={10} />
+                                </div>
+
 
                                 <div className="flex justify-between text-background text-xs mt-1">
                                     <span>{Layer.minMax[idx].minLim}</span>
@@ -587,8 +592,8 @@ export function SingleLayerItem({ Layers: Layer, index, onDragStart, onDragOver,
                                 {
                                     colorMapValue && (
 
-                                        <Trash2Icon className="h-4 w-4 text-red-500 hover:text-red-400 ml-2" onClick={() => {
-                                            setColorMapValue("");
+                                        <RefreshCcw className="h-4 w-4 text-red-500 hover:text-red-400 ml-2" onClick={() => {
+                                            setColorMapValue("gray");
                                             if (layerIndex !== -1) {
                                                 setLayers((prev) => {
                                                     if (!prev) return null;

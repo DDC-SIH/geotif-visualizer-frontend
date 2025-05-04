@@ -55,7 +55,9 @@ export const fileFormats: FileFormat[] = [
   "webp",
 ];
 
-
+export const GET_COLORMAP_LEGEND = (colormap: colorMap) => {
+  return `${TITILER_BASE_URL}/colorMaps/${colormap}?format=png&orientation=horizontal`;
+}
 
   interface TITILER_PARAMS {
     url: string;
@@ -66,6 +68,7 @@ export const fileFormats: FileFormat[] = [
     mode: LayerType;
     bbox?: bboxtype;
     colorMap?: colorMap;
+    nodata?: number;
   }
 export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
   let url = TileEndpoint;
@@ -95,6 +98,9 @@ export const GET_TITILER_URL = (params: TITILER_PARAMS) => {
     tempObj.searchParams.append("colormap_name", params.colorMap);
   }
 
+  if (params.nodata) {
+    tempObj.searchParams.append("nodata", params.nodata.toString());
+  }
   if (params.bandExpression && params.mode === "BandArithmatic") {
     tempObj.searchParams.append("expression", params.bandExpression);
   }
