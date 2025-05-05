@@ -4,7 +4,7 @@ import { GeoDataProvider } from './contexts/GeoDataProvider';
 // import MenuArea from './components/MenuArea';
 import MapSideBar from './components/Sidebar/MapSideBar';
 import { Dialog } from './components/ui/dialog';
-import LayerDialog from './components/LayerDialog';
+// import LayerDialog from './components/LayerDialog';
 
 function App() {
 
@@ -15,7 +15,7 @@ function App() {
         <MapComponent />
         <MapSideBar/>
         {/* <TimelineSlider/> */}
-        <LayerDialog/>
+        {/* <LayerDialog/> */}
       </GeoDataProvider>
       </Dialog>
     </div>
