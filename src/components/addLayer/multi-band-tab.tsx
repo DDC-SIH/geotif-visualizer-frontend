@@ -85,7 +85,7 @@ export function MultiBandTab({
           setGreenBand({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
           setBlueBand({ name: "", id: "", minMax: { min: 0, max: 0, minLim: 0, maxLim: 0 } });
           setSelectedPreset("");
-          
+
           // Generate presets based on available bands
           generatePresets(data?.cog?.bands || []);
         })
@@ -101,7 +101,7 @@ export function MultiBandTab({
   // Generate preset options based on available bands
   const generatePresets = (bands: any[]) => {
     const availablePresets: BandPreset[] = [];
-    
+
     // Check for band presence
     const hasVIS = bands.some(b => b.description === "VIS");
     const hasSWIR = bands.some(b => b.description === "SWIR");
@@ -109,17 +109,17 @@ export function MultiBandTab({
     const hasTIR2 = bands.some(b => b.description === "TIR2");
     const hasMIR = bands.some(b => b.description === "MIR");
     const hasWV = bands.some(b => b.description === "WV");
-    
+
     // Check for radiance bands
     const hasVISRad = bands.some(b => b.description === "VIS_RADIANCE");
     const hasSWIRRad = bands.some(b => b.description === "SWIR_RADIANCE");
     const hasTIR1Rad = bands.some(b => b.description === "TIR1_RADIANCE");
-    
+
     // Check for temperature bands
     const hasTIR1Temp = bands.some(b => b.description === "TIR1_TEMP");
     const hasTIR2Temp = bands.some(b => b.description === "TIR2_TEMP");
     const hasMIRTemp = bands.some(b => b.description === "MIR_TEMP");
-    
+
     // Natural Color-like composite (if available)
     if (hasVIS && hasSWIR && hasMIR) {
       availablePresets.push({
@@ -132,7 +132,7 @@ export function MultiBandTab({
         }
       });
     }
-    
+
     // Thermal composite
     if (hasTIR1 && hasTIR2 && hasMIR) {
       availablePresets.push({
@@ -145,7 +145,7 @@ export function MultiBandTab({
         }
       });
     }
-    
+
     // Thermal Temperature Analysis
     if (hasTIR1Temp && hasTIR2Temp && hasMIRTemp) {
       availablePresets.push({
@@ -158,7 +158,7 @@ export function MultiBandTab({
         }
       });
     }
-    
+
     // Moisture/Weather Analysis
     if (hasWV && hasSWIR && hasVIS) {
       availablePresets.push({
@@ -171,7 +171,7 @@ export function MultiBandTab({
         }
       });
     }
-    
+
     // Radiance Analysis
     if (hasVISRad && hasSWIRRad && hasTIR1Rad) {
       availablePresets.push({
@@ -184,18 +184,18 @@ export function MultiBandTab({
         }
       });
     }
-    
+
     setPresets(availablePresets);
   };
 
   const handlePresetChange = (preset: string) => {
     setSelectedPreset(preset);
-    
+
     if (!preset) return;
-    
+
     const selectedPresetObj = presets.find(p => p.name === preset);
     if (!selectedPresetObj || !allBands) return;
-    
+
     // Set bands based on the preset
     selectBand('red', selectedPresetObj.bands.red);
     selectBand('green', selectedPresetObj.bands.green);
@@ -206,10 +206,10 @@ export function MultiBandTab({
     if (!redBand.name || !greenBand.name || !blueBand.name || !allBands) return;
     const date = new TZDate(allBands?.aquisition_datetime as number, "UTC");
     const time = convertFromTimestamp(allBands?.aquisition_datetime as number);
-    
+
     // Use the preset name in the layer name if a preset was selected
     const presetName = selectedPreset ? ` (${selectedPreset})` : "";
-    
+
     const layer: Layers = {
       name: `${date?.toISOString().split("T")[0] || ""} / ${time} / ${processingLevel} / ${product} / RGB${presetName}`,
       id: Math.random().toString(36).substr(2, 9),
@@ -283,7 +283,7 @@ export function MultiBandTab({
                     align="start"
                     sideOffset={5}
                   >
-                
+
                     {presets.map((preset) => (
                       <SelectItem key={preset.name} value={preset.name} className="py-2">
                         <div>
